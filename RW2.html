@@ -1,0 +1,654 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RW 2.0 Selection Tool</title>
+  <link href="https://fonts.googleapis.com/css2?family=KoHo:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{--r:#CA202D;--k:#000;--d:#404042;--g:#F5F6F6;--w:#fff;--b:#e5e7eb}
+    *{box-sizing:border-box}
+    body{font-family:KoHo,Arial,sans-serif;background:var(--g);padding:24px;color:var(--d)}
+    .ct{max-width:1080px;margin:0 auto;background:var(--w);padding:24px;border-radius:12px;box-shadow:0 6px 22px rgba(0,0,0,.06);border:1px solid var(--b)}
+    h1{margin:0 0 4px;color:var(--r)}
+    h2{margin:12px 0 8px;color:var(--k)}
+    label,button,input{font-size:14px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+    .card{border:1px solid var(--b);padding:12px;border-radius:10px;background:#fff}
+    .inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .btn{background:var(--r);color:#fff;border:0;padding:9px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+    .btn.secondary{background:#404042}
+    .btn.ghost{background:#fff;color:#404042;border:1px solid var(--b)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .out{margin-top:14px;border:1px solid #d1d5db;padding:12px;border-radius:10px}
+    .wiz{display:flex;gap:6px;margin:6px 0 12px}
+    .step{padding:5px 9px;border-radius:999px;border:1px solid var(--b);cursor:pointer}
+    .on{background:var(--r);color:#fff;border-color:var(--r)}
+    .note{font-size:12px;border:1px dashed #cbd5e1;padding:6px;border-radius:6px;margin-top:6px}
+    .warn{color:#b45309;background:#fffbeb}
+    .hidden{display:none}
+    .tbl{width:100%;border-collapse:collapse;margin-top:6px}
+    th,td{padding:8px;border-bottom:1px solid var(--b);text-align:left}
+    .table-wrap{width:100%;overflow-x:auto}
+    .tbl th,.tbl td{white-space:nowrap}
+    .nav{position:sticky;bottom:0;z-index:10;background:var(--w);padding:10px;border-top:1px solid var(--b);box-shadow:0 -4px 10px rgba(0,0,0,.03);justify-content:flex-end;gap:8px}
+    .muted-small{font-size:12px;color:#6b7280}
+    hr.sep{border:0;border-top:1px solid var(--b);margin:12px 0}
+    @media (max-width:480px){
+      body{padding:12px}
+      .ct{padding:16px}
+      .grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+      label,button,input{font-size:16px}
+      .nav{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+      .tbl{font-size:13px}
+    }
+  </style>
+</head>
+<body>
+<div class="ct">
+  <h1>RW 2.0 Selection Tool</h1>
+
+  <!-- Quick instructions -->
+  <details class="card">
+    <summary style="color:var(--r);font-weight:700;cursor:pointer">Quick instructions</summary>
+    <div>
+      <ol style="line-height:1.4">
+        <li>Complete the <strong>Add-On</strong> questions.</li>
+        <li>Complete the <strong>Others</strong> questions.</li>
+        <li>Open <strong>Review</strong>, click <strong>Generate</strong> to see items, then <strong>XLSX</strong> to export. After any change, click <strong>Update</strong>.</li>
+      </ol>
+    </div>
+  </details>
+
+  <!-- Wizard pills -->
+  <div class="wiz" id="wiz">
+    <span class="step" data-s="0">Add-On</span>
+    <span class="step" data-s="1">Others</span>
+    <span class="step" data-s="2">Review</span>
+  </div>
+
+  <!-- STEP 0: Add-On -->
+  <div class="card" data-s="0">
+    <h2>Add-On</h2>
+
+    <!-- Q1: AI Overlay -->
+    <div class="qbox">
+      <h3>Does it include AI Overlay?</h3>
+      <label class="inline"><input type="radio" name="aiOverlay" value="Yes"> Yes</label>
+      <label class="inline"><input type="radio" name="aiOverlay" value="No"> No</label>
+      <div id="vAiOverlay" class="note warn hidden">Please select Yes or No.</div>
+    </div>
+
+    <!-- Q1b: Video-Out (only if AI Overlay = Yes) -->
+    <div id="videoQ" class="qbox hidden">
+      <h3>Does it include Video-Out?</h3>
+      <label class="inline"><input type="radio" name="videoOut" value="Yes"> Yes</label>
+      <label class="inline"><input type="radio" name="videoOut" value="No"> No</label>
+      <div id="vVideoOut" class="note warn hidden">Please select Yes or No.</div>
+    </div>
+
+    <!-- Q1c: Cable type (only if Video-Out = Yes) -->
+    <div id="videoCableQ" class="qbox hidden">
+      <h3>Which Video-Out cable is required?</h3>
+      <label class="inline"><input type="radio" name="videoCable" value="4-pin"> 4 pin video-out cable</label>
+      <label class="inline"><input type="radio" name="videoCable" value="5-pin"> 5 pin video-out cable</label>
+      <label class="inline"><input type="radio" name="videoCable" value="6-pin"> 6 pin video-out cable</label>
+      <div id="vVideoCable" class="note warn hidden">Please select one cable type.</div>
+      <div class="note">Part numbers for the video-out cables are still to be added; the export will include them as “part no. TBA”.</div>
+    </div>
+
+    <hr class="sep">
+
+    <!-- Q2: Body-Not-Home -->
+    <div class="qbox">
+      <h3>Does it include Body-Not-Home option?</h3>
+      <label class="inline"><input type="radio" name="bnh" value="Yes"> Yes</label>
+      <label class="inline"><input type="radio" name="bnh" value="No"> No</label>
+      <div id="vBnh" class="note warn hidden">Please select Yes or No.</div>
+    </div>
+
+    <!-- Q2b: tipper or hook (only if BNH = Yes) -->
+    <div id="bnhTypeQ" class="qbox hidden">
+      <h3>Is it a tipper or hook isolation?</h3>
+      <label class="inline"><input type="radio" name="bnhType" value="Tipper isolation"> Tipper isolation</label>
+      <label class="inline"><input type="radio" name="bnhType" value="Hook isolation"> Hook isolation</label>
+      <div id="vBnhType" class="note warn hidden">Please select one option.</div>
+    </div>
+
+    <hr class="sep">
+
+    <!-- Q3: Trailer Isolation -->
+    <div class="qbox">
+      <h3>Does it include Trailer Isolation option?</h3>
+      <label class="inline"><input type="radio" name="trlrIso" value="Yes"> Yes</label>
+      <label class="inline"><input type="radio" name="trlrIso" value="No"> No</label>
+      <div id="vTrlrIso" class="note warn hidden">Please select Yes or No.</div>
+    </div>
+  </div>
+
+  <!-- STEP 1: Others -->
+  <div class="card hidden" data-s="1">
+    <h2>Others</h2>
+
+    <div class="qbox">
+      <h3>What is this vehicle configuration?</h3>
+      <label class="inline">
+        <input type="radio" name="bodyConfig" value="Mechanical with Small body">
+        Mechanical with Small body
+      </label>
+      <label class="inline">
+        <input type="radio" name="bodyConfig" value="Common body">
+        Common body
+      </label>
+      <label class="inline">
+        <input type="radio" name="bodyConfig" value="Front Loader">
+        Front Loader
+      </label>
+      <div id="vBodyConfig" class="note warn hidden">Please select one configuration.</div>
+    </div>
+
+    <div class="note">
+      Selection above will determine the required RW 2.0 extension harness length (6 m, 15 m, or 25 m).
+    </div>
+  </div>
+
+  <!-- STEP 2: Review -->
+  <div class="card hidden" data-s="2">
+    <h2>Review</h2>
+    <div id="out" class="out hidden"></div>
+    <div id="updNote" class="note hidden" style="margin-top:6px">Inputs changed — click <strong>Update</strong> to refresh results.</div>
+    <div class="inline" style="justify-content:space-between;margin-top:8px">
+      <span id="custWrap" class="hidden">
+        Enter the customer name:
+        <input id="by" style="padding:6px;border:1px solid var(--b);border-radius:8px">
+      </span>
+      <span class="inline">
+        <button id="gen" class="btn">Generate</button>
+        <button id="xls" class="btn secondary hidden" disabled>XLSX</button>
+        <button id="clr" class="btn ghost">Start over</button>
+      </span>
+    </div>
+    <div id="vBy" class="note warn hidden" style="margin-top:6px">Please enter the customer name before exporting.</div>
+  </div>
+
+  <!-- Sticky Nav -->
+  <div class="inline nav" style="margin-top:10px;justify-content:flex-end;gap:8px">
+    <button id="prev" class="btn ghost" disabled>Back</button>
+    <button id="next" class="btn">Next</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+// ===== Helpers =====
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const selR = n => { const e = $(`input[name=${n}]:checked`); return e ? e.value : null; };
+
+// ===== Stepper =====
+let STEP = 0;
+const cards = $$('.card[data-s]');
+const pills = $$('#wiz .step');
+
+function go(s){
+  STEP = Math.max(0,Math.min(cards.length-1,s));
+  cards.forEach(c=>c.classList.add('hidden'));
+  const c = cards.find(c=>+c.dataset.s===STEP);
+  if(c) c.classList.remove('hidden');
+  pills.forEach(p=>p.classList.toggle('on',+p.dataset.s===STEP));
+  const pb = $('#prev'), nb = $('#next');
+  if(pb) pb.disabled = STEP===0;
+  const last = STEP===cards.length-1;
+  if(nb){ nb.textContent='Next'; nb.disabled=last; }
+}
+const doPrev = () => go(STEP-1);
+const doNext = () => {
+  if(!validate(STEP)) return;
+  go(STEP+1);
+  const last = STEP===cards.length-1;
+  const nb = $('#next');
+  if(nb){ nb.textContent='Next'; nb.disabled=last; }
+};
+
+$('#prev').onclick = doPrev;
+$('#next').onclick = doNext;
+
+pills.forEach(p=>p.addEventListener('click',()=>{
+  const tgt = +p.dataset.s;
+  if(tgt <= STEP){ go(tgt); }
+  else {
+    let ok = true;
+    for(let i=STEP;i<tgt;i++){ if(!validate(i)){ ok=false; break; } }
+    if(ok) go(tgt);
+  }
+}));
+
+// ===== Dynamic visibility =====
+function updateAIOverlayVisibility(){
+  const ans = selR('aiOverlay');
+  const videoQ = $('#videoQ');
+  const videoCableQ = $('#videoCableQ');
+
+  const videoOutRadios = $$('input[name=videoOut]');
+  const videoCableRadios = $$('input[name=videoCable]');
+
+  if(ans === 'Yes'){
+    videoQ.classList.remove('hidden');
+  } else {
+    videoQ.classList.add('hidden');
+    videoCableQ.classList.add('hidden');
+    // clear selections and validation
+    videoOutRadios.forEach(r=>r.checked=false);
+    videoCableRadios.forEach(r=>r.checked=false);
+    $('#vVideoOut').classList.add('hidden');
+    $('#vVideoCable').classList.add('hidden');
+  }
+}
+
+function updateVideoOutVisibility(){
+  const ans = selR('videoOut');
+  const videoCableQ = $('#videoCableQ');
+  const videoCableRadios = $$('input[name=videoCable]');
+  if(ans === 'Yes'){
+    videoCableQ.classList.remove('hidden');
+  } else {
+    videoCableQ.classList.add('hidden');
+    videoCableRadios.forEach(r=>r.checked=false);
+    $('#vVideoCable').classList.add('hidden');
+  }
+}
+
+function updateBnhVisibility(){
+  const ans = selR('bnh');
+  const box = $('#bnhTypeQ');
+  const radios = $$('input[name=bnhType]');
+  if(ans === 'Yes'){
+    box.classList.remove('hidden');
+  } else {
+    box.classList.add('hidden');
+    radios.forEach(r=>r.checked=false);
+    $('#vBnhType').classList.add('hidden');
+  }
+}
+
+// Wire listeners
+$$('input[name=aiOverlay]').forEach(r=>r.addEventListener('change',()=>{ updateAIOverlayVisibility(); markDirty(); }));
+$$('input[name=videoOut]').forEach(r=>r.addEventListener('change',()=>{ updateVideoOutVisibility(); markDirty(); }));
+$$('input[name=videoCable]').forEach(r=>r.addEventListener('change',()=>{ markDirty(); }));
+$$('input[name=bnh]').forEach(r=>r.addEventListener('change',()=>{ updateBnhVisibility(); markDirty(); }));
+$$('input[name=bnhType]').forEach(r=>r.addEventListener('change',markDirty));
+$$('input[name=trlrIso]').forEach(r=>r.addEventListener('change',markDirty));
+$$('input[name=bodyConfig]').forEach(r=>r.addEventListener('change',markDirty));
+
+// ===== Validation =====
+function validate(step){
+  if(step===0){
+    let ok = true;
+    const ai = selR('aiOverlay');
+    const videoOut = selR('videoOut');
+    const videoCable = selR('videoCable');
+    const bnh = selR('bnh');
+    const bnhType = selR('bnhType');
+    const trlrIso = selR('trlrIso');
+
+    if(!ai){ $('#vAiOverlay').classList.remove('hidden'); ok=false; } else $('#vAiOverlay').classList.add('hidden');
+
+    if(ai === 'Yes'){
+      if(!videoOut){ $('#vVideoOut').classList.remove('hidden'); ok=false; } else $('#vVideoOut').classList.add('hidden');
+      if(videoOut === 'Yes'){
+        if(!videoCable){ $('#vVideoCable').classList.remove('hidden'); ok=false; } else $('#vVideoCable').classList.add('hidden');
+      } else {
+        $('#vVideoCable').classList.add('hidden');
+      }
+    } else {
+      $('#vVideoOut').classList.add('hidden');
+      $('#vVideoCable').classList.add('hidden');
+    }
+
+    if(!bnh){ $('#vBnh').classList.remove('hidden'); ok=false; } else $('#vBnh').classList.add('hidden');
+    if(bnh === 'Yes'){
+      if(!bnhType){ $('#vBnhType').classList.remove('hidden'); ok=false; } else $('#vBnhType').classList.add('hidden');
+    } else {
+      $('#vBnhType').classList.add('hidden');
+    }
+
+    if(!trlrIso){ $('#vTrlrIso').classList.remove('hidden'); ok=false; } else $('#vTrlrIso').classList.add('hidden');
+
+    return ok;
+  }
+
+  if(step===1){
+    const bodyConfig = selR('bodyConfig');
+    if(!bodyConfig){ $('#vBodyConfig').classList.remove('hidden'); return false; }
+    $('#vBodyConfig').classList.add('hidden');
+  }
+
+  return true;
+}
+
+// ===== Items & table helpers =====
+function combine(items){
+  const m = new Map();
+  items.forEach(it=>{
+    const k = `${it.part}|${it.desc}`;
+    if(!m.has(k)) m.set(k,{desc:it.desc,part:it.part||'',qty:0});
+    m.get(k).qty += (it.qty||1);
+  });
+  return [...m.values()];
+}
+
+function table(items){
+  if(!items.length) return '';
+  const rows = items.map(i=>
+    `<tr><td>${i.desc}</td><td>${i.part||''}</td><td>${i.qty||1}</td></tr>`
+  ).join('');
+  return `
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead><tr><th>Description</th><th>Item no.</th><th>Qty</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ===== State tracking for Update / XLSX =====
+let HAS_OUTPUT=false;
+let LAST_SIG="";
+let EXP={};
+
+function collectSig(){
+  const obj = {
+    aiOverlay: selR('aiOverlay')||'',
+    videoOut: selR('videoOut')||'',
+    videoCable: selR('videoCable')||'',
+    bnh: selR('bnh')||'',
+    bnhType: selR('bnhType')||'',
+    trlrIso: selR('trlrIso')||'',
+    bodyConfig: selR('bodyConfig')||''
+  };
+  return JSON.stringify(obj);
+}
+
+function refreshButtons(){
+  const byOk = (($('#by')?.value||'').trim().length>0);
+  if(HAS_OUTPUT){
+    $('#gen').textContent='Update';
+    const dirty = (collectSig()!==LAST_SIG);
+    $('#gen').disabled=!dirty;
+    $('#xls').classList.remove('hidden');
+    $('#xls').disabled=!byOk;
+    $('#custWrap').classList.remove('hidden');
+  } else {
+    $('#gen').textContent='Generate';
+    $('#gen').disabled=false;
+    $('#xls').classList.add('hidden');
+    $('#custWrap').classList.add('hidden');
+  }
+}
+
+function markDirty(){
+  if(HAS_OUTPUT){
+    const dirty = (collectSig()!==LAST_SIG);
+    $('#gen').textContent='Update';
+    $('#gen').disabled=!dirty;
+    $('#updNote').classList.toggle('hidden',!dirty);
+  }
+}
+
+// ===== Generate logic (your rules) =====
+function generate(){
+  $('#updNote').classList.add('hidden');
+
+  const aiOverlay = selR('aiOverlay') || 'No';
+  const videoOut  = selR('videoOut') || 'No';
+  const videoCable = selR('videoCable') || '';
+  const bnh = selR('bnh') || 'No';
+  const bnhType = selR('bnhType') || '';
+  const trlrIso = selR('trlrIso') || 'No';
+  const bodyConfig = selR('bodyConfig') || '';
+
+  let items = [];
+
+  // Default base kit – always added
+  items.push({
+    desc: 'REVERSE WATCH 2 RADAR KIT',
+    part: 'RW2REVERSEWATCHKIT',
+    qty: 1
+  });
+
+  // Q1: AI Overlay
+  if(aiOverlay === 'Yes'){
+    items.push({
+      desc: 'AI Overlay Kit',
+      part: '15RW2AIOVERLAYOPTKIT',
+      qty: 1
+    });
+
+    // Video-Out + cable
+    if(videoOut === 'Yes'){
+      let cableDesc = '';
+      if(videoCable === '4-pin') cableDesc = '4 pin video-out cable (part no. TBA)';
+      else if(videoCable === '5-pin') cableDesc = '5 pin video-out cable (part no. TBA)';
+      else if(videoCable === '6-pin') cableDesc = '6 pin video-out cable (part no. TBA)';
+
+      if(cableDesc){
+        items.push({
+          desc: cableDesc,
+          part: '', // part number to be added later
+          qty: 1
+        });
+      }
+    }
+  }
+
+  // Q2: Body-Not-Home
+  if(bnh === 'Yes'){
+    items.push({
+      desc: 'Body-Not-Home Kit',
+      part: '15RW2UNBNHISOK',
+      qty: 1
+    });
+  }
+
+  // Q3: Trailer Isolation
+  if(trlrIso === 'Yes'){
+    items.push({
+      desc: 'Trailer Isolation 13 m extension harness',
+      part: '12RW2UNTLRISO13MEXHN',
+      qty: 1
+    });
+    items.push({
+      desc: 'Trailer Isolation Kit',
+      part: '15RW2UNTRLISOK',
+      qty: 1
+    });
+  }
+
+  // Others tab – body configuration → extension harness
+  if(bodyConfig === 'Mechanical with Small body'){
+    items.push({
+      desc: 'REVERSE WATCH 2 EXTENSION HARNESS (6 m)',
+      part: '81RW2EXHARNESS6M',
+      qty: 1
+    });
+  } else if(bodyConfig === 'Common body'){
+    items.push({
+      desc: 'REVERSE WATCH 2 EXTENSION HARNESS (15 m)',
+      part: '81RW2EXHARNESS15M',
+      qty: 1
+    });
+  } else if(bodyConfig === 'Front Loader'){
+    items.push({
+      desc: 'REVERSE WATCH 2 EXTENSION HARNESS (25 m)',
+      part: '81RW2EXHARNESS25M',
+      qty: 1
+    });
+  }
+
+  // Combine duplicates
+  items = combine(items);
+
+  // Pretty summaries for review
+  const videoOutSummary = (aiOverlay === 'Yes')
+    ? (videoOut === 'Yes'
+        ? `Yes (${videoCable || 'cable type not selected'})`
+        : 'No')
+    : 'N/A';
+
+  const bnhSummary = (bnh === 'Yes'
+    ? `Yes (${bnhType || 'type not selected'})`
+    : 'No');
+
+  const trlrIsoSummary = trlrIso;
+
+  // Build Review HTML
+  let html = '';
+  html += `<strong>AI Overlay:</strong> ${aiOverlay}<br>`;
+  html += `<strong>Video-Out:</strong> ${videoOutSummary}<br>`;
+  html += `<strong>Body-Not-Home option:</strong> ${bnhSummary}<br>`;
+  html += `<strong>Trailer Isolation option:</strong> ${trlrIsoSummary}<br>`;
+  html += `<strong>Vehicle configuration:</strong> ${bodyConfig || '—'}<br><br>`;
+  html += `<strong>Items:</strong>`;
+  html += table(items);
+
+  const out = $('#out');
+  out.innerHTML = html;
+  out.classList.remove('hidden');
+
+  // Save export state
+  EXP = {
+    aiOverlay,
+    videoOut,
+    videoCable,
+    bnh,
+    bnhType,
+    trlrIso,
+    bodyConfig,
+    items,
+    by: ($('#by').value||''),
+    at: new Date().toISOString()
+  };
+
+  HAS_OUTPUT = true;
+  LAST_SIG = collectSig();
+  refreshButtons();
+}
+
+// Buttons
+$('#gen').onclick = () => generate();
+$('#clr').onclick = () => { location.reload(); };
+
+// Init on load
+window.addEventListener('DOMContentLoaded',()=>{
+  go(0);
+  updateAIOverlayVisibility();
+  updateVideoOutVisibility();
+  updateBnhVisibility();
+  refreshButtons();
+  document.addEventListener('change',markDirty,true);
+  document.addEventListener('input',markDirty,true);
+  const by = $('#by');
+  if(by) by.addEventListener('input',()=>refreshButtons());
+});
+
+// ===== Excel export =====
+function rows(){
+  const s = EXP || {items:[]};
+  const videoOutSummary = (s.aiOverlay === 'Yes')
+    ? (s.videoOut === 'Yes'
+        ? `Yes (${s.videoCable || 'cable type not selected'})`
+        : 'No')
+    : 'N/A';
+
+  const bnhSummary = (s.bnh === 'Yes'
+    ? `Yes (${s.bnhType || 'type not selected'})`
+    : 'No');
+
+  const trlrIsoSummary = s.trlrIso || 'No';
+
+  const A = [
+    {Field:'AI Overlay',Value:s.aiOverlay||''},
+    {Field:'Video-Out',Value:videoOutSummary},
+    {Field:'Body-Not-Home option',Value:bnhSummary},
+    {Field:'Trailer Isolation option',Value:trlrIsoSummary},
+    {Field:'Vehicle configuration',Value:s.bodyConfig||''},
+    {Field:'Items (count)',Value:String((s.items||[]).length)},
+    {Field:'Exported at',Value:new Date(s.at).toLocaleString()}
+  ];
+  if(s.by) A.push({Field:'Customer name',Value:s.by});
+  return A;
+}
+
+function exportExcel(){
+  // Ensure latest output
+  generate();
+
+  if(!(($('#by').value||'').trim())){
+    $('#vBy').classList.remove('hidden');
+    return;
+  } else {
+    $('#vBy').classList.add('hidden');
+  }
+
+  const wb = new ExcelJS.Workbook();
+  const brandRed = 'CA202D', brandLt='F5F6F6';
+
+  // Summary sheet
+  const ws0 = wb.addWorksheet('Summary');
+  ws0.columns = [
+    {header:'Field',key:'Field',width:30},
+    {header:'Value',key:'Value',width:70}
+  ];
+  ws0.getRow(1).font = {bold:true,color:{argb:'FFFFFFFF'}};
+  ws0.getRow(1).fill = {type:'pattern',pattern:'solid',fgColor:{argb:brandRed}};
+  rows().forEach(r=>ws0.addRow(r));
+  ws0.views = [{state:'frozen',ySplit:1}];
+
+  // Items sheet
+  const ws1 = wb.addWorksheet('Items');
+  ws1.columns = [
+    {header:'Description',key:'desc',width:60},
+    {header:'Item no.',key:'part',width:26},
+    {header:'Qty',key:'qty',width:8}
+  ];
+  ws1.getRow(1).font = {bold:true,color:{argb:'FFFFFFFF'}};
+  ws1.getRow(1).fill = {type:'pattern',pattern:'solid',fgColor:{argb:brandRed}};
+  ws1.getRow(1).alignment = {vertical:'middle'};
+
+  const its = EXP.items && EXP.items.length ? EXP.items : [{desc:'None',part:'',qty:''}];
+  its.forEach((i,idx)=>{
+    const r = ws1.addRow({desc:i.desc,part:i.part||'',qty:i.qty||1});
+    if(idx%2===0){
+      r.fill = {type:'pattern',pattern:'solid',fgColor:{argb:brandLt}};
+    }
+  });
+  ws1.getColumn('qty').alignment = {horizontal:'center'};
+  ws1.views = [{state:'frozen',ySplit:1}];
+
+  wb.xlsx.writeBuffer().then(buf=>{
+    const blob = new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const ts = new Date();
+    const pad = n=>String(n).padStart(2,'0');
+    a.download = `RW2_Items_${ts.getFullYear()}-${pad(ts.getMonth()+1)}-${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+}
+
+// Load ExcelJS dynamically
+(function loadExcel(){
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+  s.onload = () => { $('#xls').onclick = exportExcel; };
+  s.onerror = () => {
+    console.warn('ExcelJS failed to load; XLSX export disabled.');
+    $('#xls').disabled = true;
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

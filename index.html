@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MAX-SAFE Calculators</title>
+  <style>
+    :root{
+      --r:#CA202D;
+      --k:#000;
+      --d:#404042;
+      --g:#F5F6F6;
+      --w:#fff;
+      --b:#e5e7eb;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+
+    body{
+      font-family:KoHo,Arial,sans-serif;
+      background:var(--g);
+      padding:24px;
+      color:var(--d);
+    }
+
+    .ct{
+      max-width:900px;
+      margin:0 auto;
+      background:var(--w);
+      padding:24px;
+      border-radius:12px;
+      box-shadow:0 6px 22px rgba(0,0,0,.06);
+      border:1px solid var(--b);
+    }
+
+    h1{
+      margin-bottom:4px;
+      color:var(--r);
+    }
+
+    p.lead{
+      margin-bottom:16px;
+      color:#4b5563;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:16px;
+      margin-top:16px;
+    }
+
+    .card{
+      border:1px solid var(--b);
+      border-radius:12px;
+      padding:18px;
+      background:#fff;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      min-height:160px;
+    }
+
+    .card h2{
+      margin-bottom:8px;
+      font-size:20px;
+      color:var(--k);
+    }
+
+    .card p{
+      font-size:14px;
+      color:#4b5563;
+      margin-bottom:16px;
+    }
+
+    .btn{
+      display:inline-block;
+      text-decoration:none;
+      background:var(--r);
+      color:#fff;
+      padding:9px 14px;
+      border-radius:999px;
+      font-weight:700;
+      font-size:14px;
+      text-align:center;
+    }
+
+    .btn.secondary{
+      background:#404042;
+    }
+
+    .note{
+      font-size:12px;
+      color:#6b7280;
+      margin-top:12px;
+    }
+
+    @media (max-width:480px){
+      body{padding:12px}
+      .ct{padding:16px}
+    }
+  </style>
+</head>
+<body>
+  <div class="ct">
+    <h1>MAX-SAFE Calculators</h1>
+    <p class="lead">
+      Select the tool you want to use to build a sales quote and identify the required MAX-SAFE items.
+    </p>
+
+    <div class="grid">
+      <!-- RW 2.0 -->
+      <div class="card">
+        <div>
+          <h2>RW 2.0 Selection Tool</h2>
+          <p>
+            Use this tool to quickly select RW 2.0 options and automatically generate the required items for quoting.
+          </p>
+        </div>
+       <a class="btn" href="RW2.html">
+    Open RW 2.0 Calculator
+</a>
+      </div>
+
+      <!-- Protect 360 AI -->
+      <div class="card">
+        <div>
+          <h2>Protect 360 AI Selection Tool</h2>
+          <p>
+            Use this tool to select Protect 360 AI options and automatically generate the full kit and item list for quoting.
+          </p>
+        </div>
+        <a class="btn secondary" href="P360.html">
+    Open Protect 360 AI Calculator
+</a>
+      </div>
+    </div>
+
+    <p class="note">
+      Tip: share this link with the sales team so they can quickly access both MAX-SAFE quoting tools from a single location.
+    </p>
+  </div>
+</body>
+</html>

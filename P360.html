@@ -1,0 +1,498 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Protect 360 AI Selection Tool (Multi‑tab v6.4)</title>
+  <link href="https://fonts.googleapis.com/css2?family=KoHo:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{--r:#CA202D;--k:#000;--d:#404042;--g:#F5F6F6;--w:#fff;--b:#e5e7eb}
+    *{box-sizing:border-box}
+    body{font-family:KoHo,Arial,sans-serif;background:var(--g);padding:24px;color:var(--d)}
+    .ct{max-width:1080px;margin:0 auto;background:var(--w);padding:24px;border-radius:12px;box-shadow:0 6px 22px rgba(0,0,0,.06);border:1px solid var(--b)}
+    h1{margin:0 0 4px;color:var(--r)} h2{margin:12px 0 8px;color:var(--k)}
+    label,button,input{font-size:14px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+    .card{border:1px solid var(--b);padding:12px;border-radius:10px;background:#fff}
+    .inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .btn{background:var(--r);color:#fff;border:0;padding:9px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+    .btn.secondary{background:#404042}.btn.ghost{background:#fff;color:#404042;border:1px solid var(--b)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .out{margin-top:14px;border:1px solid #d1d5db;padding:12px;border-radius:10px}
+    .wiz{display:flex;gap:6px;margin:6px 0 12px}
+    .step{padding:5px 9px;border-radius:999px;border:1px solid var(--b);cursor:pointer}
+    .on{background:var(--r);color:#fff;border-color:var(--r)}
+    .note{font-size:12px;border:1px dashed #cbd5e1;padding:6px;border-radius:6px;margin-top:6px}
+    .warn{color:#b45309;background:#fffbeb}
+    .hidden{display:none}
+    .tbl{width:100%;border-collapse:collapse;margin-top:6px}
+    th,td{padding:8px;border-bottom:1px solid var(--b);text-align:left}
+    .nav{position:sticky;bottom:0;z-index:10;background:var(--w);padding:10px;border-top:1px solid var(--b);box-shadow:0 -4px 10px rgba(0,0,0,.03);justify-content:flex-end;gap:8px}
+    .table-wrap{width:100%;overflow-x:auto}
+    .tbl th,.tbl td{white-space:nowrap}
+    .qbox{border:1px solid var(--b);border-radius:8px;padding:10px;margin:10px 0}
+    .muted-small{font-size:12px;color:#6b7280}
+    hr.sep{border:0;border-top:1px solid var(--b);margin:12px 0}
+    @media (max-width:480px){body{padding:12px}.ct{padding:16px}.grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}label,button,input{font-size:16px}.nav{padding-bottom:calc(10px + env(safe-area-inset-bottom))}.tbl{font-size:13px}}
+  </style>
+</head>
+<body>
+  <div class="ct">
+    <h1>Protect 360 AI Selection Tool</h1>
+
+    <!-- Quick instructions (collapsed) -->
+    <details class="card">
+      <summary style="color:var(--r);font-weight:700;cursor:pointer">Quick instructions</summary>
+      <div>
+        <ol style="line-height:1.4">
+          <li>Select your <strong>protected zones</strong>.</li>
+          <li>Complete the <strong>details</strong> questions (follow-ups and optional add-ons).</li>
+          <li>Open <strong>review</strong>, click <strong>generate</strong> to see results, then <strong>XLSX</strong> to export. After any change, click <strong>update</strong>.</li>
+        </ol>
+      </div>
+    </details>
+
+    <div class="wiz" id="wiz">
+      <span class="step" data-s="0">Protected zones</span>
+      <span class="step" data-s="1">Details</span>
+      <span class="step" data-s="2">Review</span>
+    </div>
+
+    <!-- Step 0: Protected Zones -->
+    <div class="card" data-s="0">
+      <h2>Which zones do you want to protect?</h2>
+      <div class="grid">
+        <div>
+          <label class="inline"><input type="checkbox" name="sol" value="Front">Front</label>
+          <label class="inline"><input type="checkbox" name="sol" value="Rear">Rear</label>
+        </div>
+        <div>
+          <label class="inline"><input type="checkbox" name="sol" value="Side Left">Side – left</label>
+          <label class="inline"><input type="checkbox" name="sol" value="Side Right">Side – right</label>
+        </div>
+        <div>
+          <label class="inline"><input type="checkbox" name="sol" value="Corner Left">Corner – left</label>
+          <label class="inline"><input type="checkbox" name="sol" value="Corner Right">Corner – right</label>
+        </div>
+      </div>
+      <div id="vZones" class="note warn hidden">Pick at least one zone.</div>
+    </div>
+
+    <!-- Step 1: Details -->
+    <div class="card hidden" data-s="1">
+      <h2>Can you confirm a few details?</h2>
+
+      <!-- CAN (conditional, combined steering + indicators) -->
+      <div id="canQ" class="hidden qbox" style="margin-top:6px">
+        <h3>Which CAN data does the vehicle provide?</h3>
+        <label><input type="radio" name="canData" value="None" disabled> None</label>
+        <label><input type="radio" name="canData" value="Steering only" disabled> Steering angle only</label>
+        <label><input type="radio" name="canData" value="Indicators only" disabled> Indicators only</label>
+        <label><input type="radio" name="canData" value="Both" disabled> Both steering and indicators</label>
+        <div id="vCan" class="note warn hidden">Please choose one option.</div>
+      </div>
+
+      <!-- RW2.0 (conditional) -->
+      <div id="rearQ" class="hidden qbox" style="margin-top:10px">
+        <h3>Is there an existing RW2.0 at the rear?</h3>
+        <label><input type="radio" name="rw" value="Yes" disabled> Yes</label>
+        <label><input type="radio" name="rw" value="No" disabled> No</label>
+        <div id="vRw" class="note warn hidden">Answer yes or no.</div>
+      </div>
+
+      <hr class="sep">
+
+      <!-- Add-ons: front and rear -->
+      <div id="frontRear" class="hidden qbox" style="margin-top:12px">
+        <div id="frontGrp" class="hidden"><strong>Which front add-ons would you like?</strong>
+          <div class="inline" id="frontOpts"></div>
+        </div>
+        <div id="rearGrp" class="hidden" style="margin-top:10px"><strong>Which rear add-ons would you like?</strong>
+          <div class="inline" id="rearOpts"></div>
+        </div>
+      </div>
+
+      <!-- Side/corner combined by vehicle side -->
+      <div id="lrGrp" class="hidden qbox" style="margin-top:12px">
+        <strong>Would you like a strobe light bar by side?</strong>
+        <div id="lrOpts" class="inline"></div>
+      </div>
+
+      <hr class="sep">
+
+      <!-- Vision 360 (mandatory) -->
+      <div id="v360Q" class="qbox" style="margin-top:12px">
+        <h3>Will 360° bird’s‑eye Vision 360 be required?</h3>
+        <label class="inline"><input type="radio" name="v360" value="Yes"> Yes</label>
+        <label class="inline"><input type="radio" name="v360" value="No"> No</label>
+        <div id="vV360" class="note warn hidden">Please answer yes or no.</div>
+      </div>
+
+      <!-- Vision 360 monitor (only when Vision 360 = Yes) -->
+      <div id="v360ScreenQ" class="qbox hidden" style="margin-top:10px">
+        <h3>Which Vision 360 monitor would you like to include?</h3>
+        <label class="inline"><input type="radio" name="v360Screen" value="ST-HD700269R" disabled> ST-HD700269R — SKM - 7" HD touch control monitor with 360° operation built‑in + recording</label>
+        <label class="inline"><input type="radio" name="v360Screen" value="ST-HD263D" disabled> ST-HD263D — SKM - 7" HD touch control monitor for 360° operation</label>
+        <label class="inline"><input type="radio" name="v360Screen" value="ST-HD100299DC" disabled> ST-HD100299DC — SKM - 10.1" HD touch control monitor with 360° operation built‑in + recording</label>
+        <label class="inline"><input type="radio" name="v360Screen" value="ST-HD293DC" disabled> ST-HD293DC — SKM - 10.1" HD touch control monitor for 360° operation <strong>(Most popular)</strong></label>
+        <div id="vV360Screen" class="note warn hidden">Please select a monitor option.</div>
+      </div>
+
+      <hr class="sep">
+
+      <!-- Control type (conditional) -->
+      <div id="ctlQ" class="qbox" style="margin-top:12px">
+        <h3>What is the vehicle control type?</h3>
+        <label class="inline"><input type="radio" name="ctl" value="Single"> Single</label>
+        <label class="inline"><input type="radio" name="ctl" value="Dual"> Dual</label>
+        <div id="vCtl" class="note warn hidden">Pick single or dual.</div>
+      </div>
+      <div id="ctlNote" class="muted-small hidden">Selecting vehicle type is not required—speaker already determined.</div>
+    </div>
+
+    <!-- Step 2: Review -->
+    <div class="card hidden" data-s="2">
+      <h2>Review</h2>
+      <div id="out" class="out hidden"></div>
+      <div id="updNote" class="note hidden" style="margin-top:6px">Inputs changed — click <strong>update</strong> to refresh results.</div>
+      <div class="inline" style="justify-content:space-between;margin-top:8px">
+        <span id="custWrap" class="hidden">Enter the customer name: <input id="by" style="padding:6px;border:1px solid var(--b);border-radius:8px"></span>
+        <span class="inline">
+          <button id="gen" class="btn">Generate</button>
+          <button id="xls" class="btn secondary hidden" disabled>XLSX</button>
+          <button id="clr" class="btn ghost">Start over</button>
+        </span>
+      </div>
+      <div id="vBy" class="note warn hidden" style="margin-top:6px">Please enter the customer name before exporting.</div>
+    </div>
+
+    <!-- Sticky Nav -->
+    <div class="inline nav" style="margin-top:10px;justify-content:flex-end;gap:8px">
+      <button id="prev" class="btn ghost" disabled>Back</button>
+      <button id="next" class="btn">Next</button>
+    </div>
+  </div>
+
+  <script>
+  "use strict";
+  // ===== Helpers =====
+  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  const has=n=>!!$(`input[name=sol][value="${n}"]:checked`);
+  const selS=()=>$$("input[name=sol]:checked").map(e=>e.value);
+  const selR=n=>{ const e=$(`input[name=${n}]:checked`); return e?e.value:null };
+
+  // ===== Stepper =====
+  let STEP=0; const cards=$$('.card[data-s]'), pills=$$('#wiz .step');
+  function go(s){
+    STEP=Math.max(0,Math.min(cards.length-1,s));
+    cards.forEach(c=>c.classList.add('hidden'));
+    const c=cards.find(c=>+c.dataset.s===STEP); if(c) c.classList.remove('hidden');
+    pills.forEach(p=>p.classList.toggle('on',+p.dataset.s===STEP));
+    const pb=$('#prev'), nb=$('#next');
+    if(pb) pb.disabled=STEP===0;
+    const last=STEP===cards.length-1;
+    if(nb){ nb.textContent='Next'; nb.disabled=last; }
+  }
+  const doPrev=()=>go(STEP-1);
+  const doNext=()=>{ if(!validate(STEP)) return; go(STEP+1); const last=STEP===cards.length-1; const nb=$('#next'); if(nb){ nb.textContent='Next'; nb.disabled=last; } };
+  $('#prev').onclick=doPrev; $('#next').onclick=doNext;
+  pills.forEach(p=>p.addEventListener('click',()=>{ const tgt=+p.dataset.s; if(tgt<=STEP){ go(tgt); } else { let ok=true; for(let i=STEP;i<tgt;i++){ if(!validate(i)){ ok=false; break; } } if(ok) go(tgt); } }));
+
+  // ===== Rules =====
+  function speakerDependsOnCtl(sels, v360){
+    const hasCornerLeft = sels.includes('Corner Left');
+    const sideLeft = sels.includes('Side Left');
+    if(v360==='Yes' && sels.length===1 && sideLeft) return false; // Vision 360 + Side Left only => no internal
+    if(hasCornerLeft) return false;                  // Corner Left forces internal speaker
+    if(sideLeft && sels.length>1) return false;      // Side Left with anything else forces internal speaker
+    if(sideLeft && sels.length===1) return false;    // Only Side Left => no internal
+    return true;                                     // otherwise depends on control type
+  }
+  function updateCtlVisibility(){
+    const sels=selS(); const v360=selR('v360')||'';
+    const needCtl = speakerDependsOnCtl(sels, v360);
+    const card=$('#ctlQ'); const radios=$$('input[name=ctl]',card);
+    const note=$('#ctlNote');
+    card.classList.toggle('hidden', !needCtl);
+    if(!needCtl){
+      radios.forEach(r=>{ r.checked=false; r.disabled=true; });
+      $('#vCtl').classList.add('hidden');
+      if(note) note.classList.remove('hidden');
+    } else {
+      radios.forEach(r=> r.disabled=false);
+      if(note) note.classList.add('hidden');
+    }
+  }
+  function anyCorner(){ return has('Corner Left')||has('Corner Right'); }
+  function anySide(){ return has('Side Left')||has('Side Right'); }
+  function needsCAN(){ return anyCorner()||anySide(); }
+  function needsRW(){ return has('Rear'); }
+  function lockFront(){ const f=$('input[name=sol][value=Front]'); if(anyCorner()&&f&&!f.checked) f.checked=true; }
+  function preventUncheckFront(e){ if(e.target.value==='Front' && anyCorner() && !e.target.checked){ e.target.checked=true; } }
+
+  // Wiring for selections
+  $$('input[name=sol]').forEach(cb=>cb.addEventListener('change',e=>{
+    if(cb.value.startsWith('Corner')) lockFront();
+    if(cb.value==='Front') preventUncheckFront(e);
+    updateCAN(); updateRW(); updateAddons();
+    updateCtlVisibility(); markDirty();
+  }));
+
+  // Vision 360 follow-up listener
+  $$('input[name=v360]').forEach(r=> r.addEventListener('change',()=>{ updateV360Screen(); updateCtlVisibility(); markDirty(); }));
+
+  // ===== UI updates =====
+  function updateCAN(){
+    const card=$('#canQ'), radios=$$('input[name=canData]',card), show=needsCAN();
+    card.classList.toggle('hidden',!show);
+    radios.forEach(r=>{ r.disabled=!show; if(!show) r.checked=false; });
+    if(!show) $('#vCan').classList.add('hidden');
+  }
+  function updateRW(){
+    const card=$('#rearQ'), radios=$$('input[name=rw]',card), show=needsRW();
+    card.classList.toggle('hidden',!show);
+    radios.forEach(r=>{ r.disabled=!show; if(!show) r.checked=false; });
+    if(!show) $('#vRw').classList.add('hidden');
+    updateCtlVisibility();
+  }
+  function updateAddons(){
+    const f=has('Front'), r=has('Rear'), sl=has('Side Left'), sr=has('Side Right'), cl=has('Corner Left'), cr=has('Corner Right');
+    $('#frontRear').classList.toggle('hidden',!(f||r));
+    $('#frontGrp').classList.toggle('hidden',!f);
+    $('#rearGrp').classList.toggle('hidden', f || !r);
+
+    const fO=$('#frontOpts'); fO.innerHTML='';
+    if(f){ fO.innerHTML = `<label><input type="checkbox" id="fStCb"> Front strobe light bar</label><label><input type="checkbox" id="fSpCb"> Front external speaker</label>`; }
+    else ['fStCb','fSpCb'].forEach(id=>{ const el=$('#'+id); if(el) el.checked=false; });
+
+    const rO=$('#rearOpts'); rO.innerHTML='';
+    if(r && !f){ rO.innerHTML = `<label><input type="checkbox" id="rStCb"> Rear strobe light bar</label><label><input type="checkbox" id="rSpCb"> Rear external speaker</label>`; }
+    else ['rStCb','rSpCb'].forEach(id=>{ const el=$('#'+id); if(el) el.checked=false; });
+
+    // side/corner combined by vehicle side
+    const leftActive = sl || cl;
+    const rightActive = sr || cr;
+    const grp = $('#lrGrp'); const opts = $('#lrOpts');
+    grp.classList.toggle('hidden', !(leftActive||rightActive));
+    opts.innerHTML='';
+    if(leftActive) opts.innerHTML += `<label><input type="checkbox" id="lStCb"> Left strobe light bar</label>`;
+    if(rightActive) opts.innerHTML += `<label><input type="checkbox" id="rSideStCb"> Right strobe light bar</label>`;
+    if(!(leftActive||rightActive)) ['lStCb','rSideStCb'].forEach(id=>{ const el=$('#'+id); if(el) el.checked=false; });
+  }
+
+  // Vision 360 screen question visibility
+  function updateV360Screen(){
+    const yes = selR('v360')==='Yes';
+    const box = $('#v360ScreenQ');
+    const radios = $$("input[name=v360Screen]", box);
+    box.classList.toggle('hidden', !yes);
+    radios.forEach(r=>{ r.disabled = !yes; if(!yes) r.checked=false; });
+    if(!yes) $('#vV360Screen').classList.add('hidden');
+    updateCtlVisibility();
+  }
+
+  // ===== Validation =====
+  function validate(s){
+    if(s===0){
+      if(selS().length===0){ $('#vZones').classList.remove('hidden'); return false; }
+      $('#vZones').classList.add('hidden'); updateCAN(); updateRW(); updateAddons();
+    }
+    if(s===1){
+      if(needsCAN() && !selR('canData')){ $('#vCan').classList.remove('hidden'); return false; } else { $('#vCan').classList.add('hidden'); }
+      if(needsRW() && !selR('rw')){ $('#vRw').classList.remove('hidden'); return false; } else { $('#vRw').classList.add('hidden'); }
+      const vAns = selR('v360');
+      if(!vAns){ $('#vV360').classList.remove('hidden'); return false; } else { $('#vV360').classList.add('hidden'); }
+      if(vAns==='Yes' && !selR('v360Screen')){ $('#vV360Screen').classList.remove('hidden'); return false; } else { $('#vV360Screen').classList.add('hidden'); }
+      const ctlNeeded = !$('#ctlQ').classList.contains('hidden');
+      if(ctlNeeded && !selR('ctl')){ $('#vCtl').classList.remove('hidden'); return false; } else { $('#vCtl').classList.add('hidden'); }
+    }
+    return true;
+  }
+
+  // ===== Kits & Items =====
+  function kit(k){ switch(k){ case 'Front': return 'PROTECT360AIFRONTVK'; case 'Rear': return 'PROTECT360AIREARVK'; case 'Side Left': case 'Side Right': return 'PROTECT360AISIDEVK'; case 'Corner Left': case 'Corner Right': return 'PROTECT360AICORNERVK'; default: return ''; } }
+  const OI={ spk:{desc:'Internal speaker',part:'11IA-01'}, sns:{desc:'Steering angle sensor',part:'30IFM204'}, cab:{desc:'Steering angle cable',part:'30EVC005'}, brk:{desc:'Steering angle bracket',part:'PROTECT360AISTEERBKT'}, strobe:{desc:'Strobe light bar',part:'101LEDBAR-780MM'}, xspk:{desc:'External speaker',part:'101EA-02'}, mux:{desc:'Multiplexer',part:'PROTECT360AIMULTI'}, spl2:{desc:'Splitter – 2 way',part:'12AIOLAY2LADTHAR'}, spl3:{desc:'Splitter – 3 way',part:'12AIOLAY3LADTHAR'}, rwext:{desc:'RW2.0 extension harness',part:'81RW2EXHARNESS13M'} };
+  const MONITORS={
+    'ST-HD700269R':{full:'SKM - 7" HD touch control monitor with 360° operation built‑in + recording', short:'7" Vision monitor with recording'},
+    'ST-HD263D':{full:'SKM - 7" HD touch control monitor for 360° operation', short:'7" Vision monitor'},
+    'ST-HD100299DC':{full:'SKM - 10.1" HD touch control monitor with 360° operation built‑in + recording', short:'10.1" Vision monitor with recording'},
+    'ST-HD293DC':{full:'SKM - 10.1" HD touch control monitor for 360° operation', short:'10.1" Vision monitor (Most popular)'}
+  };
+  function combine(items){ const m=new Map(); items.forEach(it=>{ const k=`${it.part}|${it.desc}`; if(!m.has(k)) m.set(k,{desc:it.desc,part:it.part||'',qty:0}); m.get(k).qty += (it.qty||1); }); return [...m.values()]; }
+  function table(title,items){ if(!items.length) return ''; const rows = items.map(i => { return `<tr><td>${i.desc}</td><td>${i.part||''}</td><td>${i.qty||1}</td></tr>`; }).join(''); return `<div class="table-wrap"><table class="tbl"><thead><tr><th>Description</th><th>Item no.</th><th>Qty</th></tr></thead><tbody>${rows}</tbody></table></div>`; }
+  function needsSpeakerSingle(sels){ const cornerLeft = sels.includes('Corner Left'); const leftSide = sels.includes('Side Left'); return cornerLeft || (leftSide && sels.length>1); }
+
+  let EXP={};
+  let HAS_OUTPUT=false; let LAST_SIG="";
+  function collectSig(){
+    const obj={
+      zones: selS(),
+      can: selR('canData')||'',
+      rw: selR('rw')||'',
+      v360: selR('v360')||'',
+      v360Screen: selR('v360Screen')||'',
+      ctl: selR('ctl')||'',
+      addons:{
+        fSt: $('#fStCb')?.checked||false,
+        fSp: $('#fSpCb')?.checked||false,
+        rSt: $('#rStCb')?.checked||false,
+        rSp: $('#rSpCb')?.checked||false,
+        lSt: $('#lStCb')?.checked||false,
+        rSideSt: $('#rSideStCb')?.checked||false
+      }
+    };
+    return JSON.stringify(obj);
+  }
+  function refreshButtons(){
+    const byOk=(($('#by')?.value||'').trim().length>0);
+    if(HAS_OUTPUT){
+      $('#gen').textContent='Update';
+      const dirty = (collectSig()!==LAST_SIG);
+      $('#gen').disabled=!dirty;
+      $('#xls').classList.remove('hidden');
+      $('#xls').disabled=!byOk;
+      $('#custWrap').classList.remove('hidden');
+    } else {
+      $('#gen').textContent='Generate';
+      $('#gen').disabled=false;
+      $('#xls').classList.add('hidden');
+      $('#custWrap').classList.add('hidden');
+    }
+  }
+  function markDirty(){ if(HAS_OUTPUT){ const dirty = (collectSig()!==LAST_SIG); $('#gen').textContent='Update'; $('#gen').disabled = !dirty; $('#updNote').classList.toggle('hidden', !dirty); } }
+  // Self-tests
+  (function selfTests(){ try{ const html = table('Test', [{desc:'A',part:'P1',qty:2},{desc:'B',part:'',qty:1}]); if(!html.includes('<table')||!html.includes('P1')) console.warn('table() test failed'); const merged = combine([{desc:'S',part:'X',qty:1},{desc:'S',part:'X',qty:3}]); if(!(merged[0] && merged[0].qty===4)) console.warn('combine() sum failed'); }catch(e){ console.warn('Self-test error:', e); }})();
+
+  function generate(){
+    $('#updNote').classList.add('hidden');
+    const sels=selS(), ctl=selR('ctl')||'Single', canData=selR('canData')||'', rw=selR('rw')||'', v360=selR('v360')||'';
+    const vision360Selected = v360==='Yes';
+    const fShown=has('Front'), rShown=has('Rear') && !has('Front');
+
+    const fSt=$('#fStCb')?.checked||false, fSp=$('#fSpCb')?.checked||false, rSt=$('#rStCb')?.checked||false, rSp=$('#rSpCb')?.checked||false;
+    const lSt=$('#lStCb')?.checked||false, rStSide=$('#rSideStCb')?.checked||false;
+
+    // Kits
+    const kits=[{desc:'Base',part:'PROTECT360AIBASE',qty:1}];
+    if(has('Front')) kits.push({desc: vision360Selected? 'Front (190)':'Front', part: vision360Selected? 'PROTECT360AIFRONTBVK?':'PROTECT360AIFRONTVK', qty:1});
+    if(has('Rear'))  kits.push({desc: vision360Selected? 'Rear (190)':'Rear',  part: vision360Selected? 'PROTECT360AIREARBVK?':'PROTECT360AIREARVK', qty:1});
+    const sc=(has('Side Left')?1:0)+(has('Side Right')?1:0); if(sc) kits.push({desc: sc===2?'Side (both)':(has('Side Left')?'Side (left)':'Side (right)'), part:'PROTECT360AISIDEVK', qty:sc});
+    const cc=(has('Corner Left')?1:0)+(has('Corner Right')?1:0);
+    if(vision360Selected) kits.push({desc:'Vision 360', part:'ST-BVA17', qty:1});
+    if(cc) kits.push({desc: cc===2?'Corner (both)':(has('Corner Left')?'Corner (left)':'Corner (right)'), part:'PROTECT360AICORNERVK', qty:cc});
+
+    // Other items
+    let other=[]; let addSp=false;
+    if(vision360Selected && sels.length===1 && sels[0]==='Side Left') addSp=false; // Vision 360 + Side left only => no internal
+    else if(ctl==='Dual') addSp=!(sels.length===1 && sels[0]==='Side Left');
+    else addSp=needsSpeakerSingle(sels);
+    if(addSp) other.push({desc:OI.spk.desc,part:OI.spk.part,qty:1});
+
+    // CAN hardware
+    if(needsCAN()){
+      if(canData==='None' || canData==='Indicators only'){
+        other.push({desc:OI.sns.desc,part:OI.sns.part,qty:1},{desc:OI.cab.desc,part:OI.cab.part,qty:1},{desc:OI.brk.desc,part:OI.brk.part,qty:1});
+      }
+    }
+
+    // Rear extras
+    if(has('Rear')){
+      if(rw==='Yes') other.push({desc:OI.spl2.desc,part:OI.spl2.part,qty:2});
+      else if(rw==='No') other.push({desc:OI.rwext.desc,part:OI.rwext.part,qty:1});
+    }
+
+    // Splitter rules (Front + corners)
+    if(has('Front')){
+      if(cc===1) other.push({desc:OI.spl2.desc,part:OI.spl2.part,qty:1});
+      else if(cc===2) other.push({desc:OI.spl3.desc,part:OI.spl3.part,qty:1});
+    }
+
+    // Add-ons: strobes and external speakers
+    const stCtx=[];
+    if(fShown && fSt) stCtx.push('Front');
+    if(lSt) stCtx.push('Left');
+    if(rStSide) stCtx.push('Right');
+    if(rShown && rSt) stCtx.push('Rear');
+    if(stCtx.length) other.push({desc:`${OI.strobe.desc} (${stCtx.join(', ')})`,part:OI.strobe.part,qty:stCtx.length});
+    if(fShown && fSp) other.push({desc:`${OI.xspk.desc} (front)`,part:OI.xspk.part,qty:1});
+    if(rShown && rSp) other.push({desc:`${OI.xspk.desc} (rear)`,part:OI.xspk.part,qty:1});
+
+    // Multiplexer (for any Side/Corner) unless CAN provides both
+    if((anySide()||anyCorner()) && selR('canData')!=='Both') other.push({desc:OI.mux.desc,part:OI.mux.part,qty:1});
+
+    // Vision 360 monitor as Other item only
+    if(vision360Selected){ const code=selR('v360Screen'); if(code){ const short=MONITORS[code]?.short||'Vision monitor'; other.push({desc:short,part:code,qty:1}); } }
+
+    other=combine(other);
+
+    const scrCode = vision360Selected ? (selR('v360Screen')||'') : '';
+    const scrShort = scrCode && MONITORS[scrCode] ? MONITORS[scrCode].short : '';
+
+    const parts=[]; if(has('Front')) parts.push('Front'); if(has('Rear')) parts.push('Rear'); if(sc){ parts.push(sc===2?'Side (both)':(has('Side Left')?'Side (left)':'Side (right)')); } if(cc){ parts.push(cc===2?'Corner (both)':(has('Corner Left')?'Corner (left)':'Corner (right)')); } if(vision360Selected) parts.push('Vision 360');
+    const prettySolutions = parts.join(', ') || 'None';
+
+    let html = `<strong>Solutions:</strong> ${prettySolutions}<br>`;
+    html += `<strong>Control type:</strong> ${ctl}<br>`;
+    if(needsCAN()) html += `<strong>CAN data:</strong> ${canData||'—'}<br>`;
+    if(has('Rear')) html += `<strong>Existing RW2.0 at rear:</strong> ${rw||'—'}<br>`;
+    if(vision360Selected) html += `<strong>Vision 360:</strong> ${v360}<br>`;
+    if(vision360Selected && scrCode) html += `<strong>Vision 360 monitor:</strong> ${scrShort} (${scrCode})<br>`;
+    html += table('Kits',kits) + (other.length? table('Other items',other) : '<div class="note">No other items.</div>');
+    const out=$('#out'); out.innerHTML=html; out.classList.remove('hidden');
+
+    EXP={ kits, other, ctl, prettySolutions, canData, rw, v360, v360MonitorCode:scrCode, v360MonitorShort:scrShort, by:($('#by').value||''), at:new Date().toISOString() };
+    HAS_OUTPUT=true; LAST_SIG=collectSig(); refreshButtons();
+  }
+
+  // Buttons
+  $('#gen').onclick=()=>generate();
+  $('#clr').onclick=()=>{ location.reload(); };
+
+  // Step init
+  window.addEventListener('DOMContentLoaded',()=>{
+    go(0); updateCAN(); updateRW(); updateAddons(); updateV360Screen(); updateCtlVisibility(); refreshButtons();
+    document.addEventListener('change',markDirty,true);
+    document.addEventListener('input',markDirty,true);
+    $('#by').addEventListener('input',()=>refreshButtons());
+  });
+
+  // ===== Excel export (monitor appears in Other items only) =====
+  function rows(){
+    const s=EXP||{kits:[],other:[],prettySolutions:'',canData:'',rw:'',v360:'',ctl:''};
+    const A=[ {Field:'Control type',Value:s.ctl}, {Field:'Solutions',Value:s.prettySolutions} ];
+    if(s.canData) A.push({Field:'CAN data',Value:s.canData});
+    if(s.rw) A.push({Field:'Existing RW2.0 at rear',Value:s.rw});
+    if(s.v360) A.push({Field:'Vision 360',Value:s.v360});
+    A.push({Field:'Other items (count)',Value:String(s.other.length)},{Field:'Exported at',Value:new Date(s.at).toLocaleString()});
+    if(s.by) A.push({Field:'Customer name',Value:s.by});
+    return A;
+  }
+
+  function exportExcel(){
+    generate();
+    if(!(($('#by').value||'').trim())){ $('#vBy').classList.remove('hidden'); return; } else { $('#vBy').classList.add('hidden'); }
+    const wb=new ExcelJS.Workbook(); const brandRed='CA202D', brandLt='F5F6F6';
+    const ws0=wb.addWorksheet('Summary');
+    ws0.columns=[{header:'Field',key:'Field',width:26},{header:'Value',key:'Value',width:70}];
+    ws0.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}}; ws0.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:brandRed}};
+    rows().forEach(r=>ws0.addRow(r)); ws0.views=[{state:'frozen',ySplit:1}];
+
+    function addSheet(title,items){ const ws=wb.addWorksheet(title.substring(0,31)); ws.columns=[{header:'Description',key:'desc',width:60},{header:'Item no.',key:'part',width:26},{header:'Qty',key:'qty',width:8}]; ws.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}}; ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:brandRed}}; ws.getRow(1).alignment={vertical:'middle'}; items.forEach((i,idx)=>{ const r=ws.addRow({desc:i.desc,part:i.part||'',qty:i.qty||1}); if(idx%2===0) r.fill={type:'pattern',pattern:'solid',fgColor:{argb:brandLt}}; }); ws.getColumn('qty').alignment={horizontal:'center'}; ws.views=[{state:'frozen',ySplit:1}]; }
+
+    addSheet('Kits', EXP.kits);
+    addSheet('Other items', EXP.other.length? EXP.other : [{desc:'None',part:'',qty:''}]);
+
+    wb.xlsx.writeBuffer().then(buf=>{ const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); const ts=new Date(), pad=n=>String(n).padStart(2,'0'); a.download=`PROTECT 360 AI Items_${ts.getFullYear()}-${pad(ts.getMonth()+1)}-${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}.xlsx`; a.click(); URL.revokeObjectURL(a.href); });
+  }
+
+  // Dynamically load ExcelJS
+  (function loadExcel(){
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+    s.onload=()=>{ $('#xls').onclick=exportExcel; };
+    s.onerror=()=>{ console.warn('ExcelJS failed to load; XLSX export disabled.'); $('#xls').disabled=true; };
+    document.head.appendChild(s);
+  })();
+  </script>
+</body>
+</html>
