@@ -8,7 +8,7 @@
   <style>
     :root{--r:#CA202D;--k:#000;--d:#404042;--g:#F5F6F6;--w:#fff;--b:#e5e7eb}
     *{box-sizing:border-box}
-    body{font-family:KoHo,Arial,sans-serif;background:var(--g);padding:24px;color:var(--d)}
+    body{font-family:"KoHo",Arial,sans-serif;background:var(--g);padding:24px;color:var(--d)}
     .ct{max-width:1080px;margin:0 auto;background:var(--w);padding:24px;border-radius:12px;box-shadow:0 6px 22px rgba(0,0,0,.06);border:1px solid var(--b)}
     h1{margin:0 0 4px;color:var(--r)} h2{margin:12px 0 8px;color:var(--k)}
     label,button,input{font-size:14px}
@@ -30,6 +30,14 @@
     .nav{position:sticky;bottom:0;z-index:10;background:var(--w);padding:10px;border-top:1px solid var(--b);box-shadow:0 -4px 10px rgba(0,0,0,.03);justify-content:flex-end;gap:8px}
     .table-wrap{width:100%;overflow-x:auto}
     .tbl th,.tbl td{white-space:nowrap}
+    h1,h2,h3,.btn,.step,summary,th{font-family:"KoHo",Arial,sans-serif;font-weight:700}
+    td,label,input,button,.note,.muted-small{font-family:"KoHo",Arial,sans-serif}
+    .tbl th{font-size:14px;letter-spacing:.2px}
+    .tbl td{font-size:13px}
+    .out strong{color:#000}
+    .card{transition:all .2s ease}
+    .btn{letter-spacing:.2px}
+    input,button{font-family:"KoHo",Arial,sans-serif}
     .qbox{border:1px solid var(--b);border-radius:8px;padding:10px;margin:10px 0}
     .muted-small{font-size:12px;color:#6b7280}
     hr.sep{border:0;border-top:1px solid var(--b);margin:12px 0}
@@ -365,7 +373,7 @@
 
   function generate(){
     $('#updNote').classList.add('hidden');
-    const sels=selS(), ctl=selR('ctl')||'Single', canData=selR('canData')||'', rw=selR('rw')||'', v360=selR('v360')||'';
+    const sels=selS(), ctlVisible=!$('#ctlQ').classList.contains('hidden'), ctl=ctlVisible?(selR('ctl')||'Single'):'', canData=selR('canData')||'', rw=selR('rw')||'', v360=selR('v360')||'';
     const vision360Selected = v360==='Yes';
     const fShown=has('Front'), rShown=has('Rear') && !has('Front');
 
@@ -374,8 +382,8 @@
 
     // Kits
     const kits=[{desc:'Base',part:'PROTECT360AIBASE',qty:1}];
-    if(has('Front')) kits.push({desc: vision360Selected? 'Front (190)':'Front', part: vision360Selected? 'PROTECT360AIFRONTBVK?':'PROTECT360AIFRONTVK', qty:1});
-    if(has('Rear'))  kits.push({desc: vision360Selected? 'Rear (190)':'Rear',  part: vision360Selected? 'PROTECT360AIREARBVK?':'PROTECT360AIREARVK', qty:1});
+    if(has('Front')) kits.push({desc: vision360Selected? 'Front (190)':'Front', part: vision360Selected? 'PROTECT360AIFRTVK-V':'PROTECT360AIFRONTVK', qty:1});
+    if(has('Rear'))  kits.push({desc: vision360Selected? 'Rear (190)':'Rear',  part: vision360Selected? 'PROTECT360AIREARVK-V':'PROTECT360AIREARVK', qty:1});
     const sc=(has('Side Left')?1:0)+(has('Side Right')?1:0); if(sc) kits.push({desc: sc===2?'Side (both)':(has('Side Left')?'Side (left)':'Side (right)'), part:'PROTECT360AISIDEVK', qty:sc});
     const cc=(has('Corner Left')?1:0)+(has('Corner Right')?1:0);
     if(vision360Selected) kits.push({desc:'Vision 360', part:'ST-BVA17', qty:1});
@@ -432,7 +440,7 @@
     const prettySolutions = parts.join(', ') || 'None';
 
     let html = `<strong>Solutions:</strong> ${prettySolutions}<br>`;
-    html += `<strong>Control type:</strong> ${ctl}<br>`;
+    if(ctlVisible) html += `<strong>Control type:</strong> ${ctl}<br>`;
     if(needsCAN()) html += `<strong>CAN data:</strong> ${canData||'—'}<br>`;
     if(has('Rear')) html += `<strong>Existing RW2.0 at rear:</strong> ${rw||'—'}<br>`;
     if(vision360Selected) html += `<strong>Vision 360:</strong> ${v360}<br>`;
@@ -440,7 +448,7 @@
     html += table('Kits',kits) + (other.length? table('Other items',other) : '<div class="note">No other items.</div>');
     const out=$('#out'); out.innerHTML=html; out.classList.remove('hidden');
 
-    EXP={ kits, other, ctl, prettySolutions, canData, rw, v360, v360MonitorCode:scrCode, v360MonitorShort:scrShort, by:($('#by').value||''), at:new Date().toISOString() };
+    EXP={ kits, other, ctl, ctlVisible, prettySolutions, canData, rw, v360, v360MonitorCode:scrCode, v360MonitorShort:scrShort, by:($('#by').value||''), at:new Date().toISOString() };
     HAS_OUTPUT=true; LAST_SIG=collectSig(); refreshButtons();
   }
 
@@ -456,10 +464,10 @@
     $('#by').addEventListener('input',()=>refreshButtons());
   });
 
-  // ===== Excel export (monitor appears in Other items only) =====
+  // ===== Excel export (single sheet with Summary, Kits, and Other items) =====
   function rows(){
     const s=EXP||{kits:[],other:[],prettySolutions:'',canData:'',rw:'',v360:'',ctl:''};
-    const A=[ {Field:'Control type',Value:s.ctl}, {Field:'Solutions',Value:s.prettySolutions} ];
+    const A=[]; if(s.ctlVisible && s.ctl) A.push({Field:'Control type',Value:s.ctl}); A.push({Field:'Solutions',Value:s.prettySolutions});
     if(s.canData) A.push({Field:'CAN data',Value:s.canData});
     if(s.rw) A.push({Field:'Existing RW2.0 at rear',Value:s.rw});
     if(s.v360) A.push({Field:'Vision 360',Value:s.v360});
@@ -469,20 +477,95 @@
   }
 
   function exportExcel(){
-    generate();
     if(!(($('#by').value||'').trim())){ $('#vBy').classList.remove('hidden'); return; } else { $('#vBy').classList.add('hidden'); }
-    const wb=new ExcelJS.Workbook(); const brandRed='CA202D', brandLt='F5F6F6';
-    const ws0=wb.addWorksheet('Summary');
-    ws0.columns=[{header:'Field',key:'Field',width:26},{header:'Value',key:'Value',width:70}];
-    ws0.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}}; ws0.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:brandRed}};
-    rows().forEach(r=>ws0.addRow(r)); ws0.views=[{state:'frozen',ySplit:1}];
+    generate();
 
-    function addSheet(title,items){ const ws=wb.addWorksheet(title.substring(0,31)); ws.columns=[{header:'Description',key:'desc',width:60},{header:'Item no.',key:'part',width:26},{header:'Qty',key:'qty',width:8}]; ws.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}}; ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:brandRed}}; ws.getRow(1).alignment={vertical:'middle'}; items.forEach((i,idx)=>{ const r=ws.addRow({desc:i.desc,part:i.part||'',qty:i.qty||1}); if(idx%2===0) r.fill={type:'pattern',pattern:'solid',fgColor:{argb:brandLt}}; }); ws.getColumn('qty').alignment={horizontal:'center'}; ws.views=[{state:'frozen',ySplit:1}]; }
+    const wb=new ExcelJS.Workbook();
+    const brandRed='CA202D', brandDark='404042', brandLt='F5F6F6', white='FFFFFF', border='E5E7EB';
+    const ws=wb.addWorksheet('Protect 360 AI Items');
 
-    addSheet('Kits', EXP.kits);
-    addSheet('Other items', EXP.other.length? EXP.other : [{desc:'None',part:'',qty:''}]);
+    ws.columns=[
+      {width:34},
+      {width:64},
+      {width:14}
+    ];
 
-    wb.xlsx.writeBuffer().then(buf=>{ const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); const ts=new Date(), pad=n=>String(n).padStart(2,'0'); a.download=`PROTECT 360 AI Items_${ts.getFullYear()}-${pad(ts.getMonth()+1)}-${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}.xlsx`; a.click(); URL.revokeObjectURL(a.href); });
+    const titleStyle={
+      font:{bold:true,size:16,color:{argb:white}},
+      fill:{type:'pattern',pattern:'solid',fgColor:{argb:brandRed}},
+      alignment:{vertical:'middle'}
+    };
+    const headerStyle={
+      font:{bold:true,color:{argb:white}},
+      fill:{type:'pattern',pattern:'solid',fgColor:{argb:brandDark}},
+      alignment:{vertical:'middle'},
+      border:{top:{style:'thin',color:{argb:border}},left:{style:'thin',color:{argb:border}},bottom:{style:'thin',color:{argb:border}},right:{style:'thin',color:{argb:border}}}
+    };
+    const bodyBorder={top:{style:'thin',color:{argb:border}},left:{style:'thin',color:{argb:border}},bottom:{style:'thin',color:{argb:border}},right:{style:'thin',color:{argb:border}}};
+
+    function sectionTitle(title){
+      const r=ws.addRow([title]);
+      ws.mergeCells(r.number,1,r.number,3);
+      Object.assign(r.getCell(1), titleStyle);
+      r.height=24;
+      return r.number;
+    }
+
+    function header(values){
+      const r=ws.addRow(values);
+      r.eachCell(c=>Object.assign(c, headerStyle));
+      return r.number;
+    }
+
+    function styleBodyRow(row, shaded=false){
+      row.eachCell({includeEmpty:true}, c=>{
+        c.border=bodyBorder;
+        c.alignment={vertical:'top',wrapText:true};
+        if(shaded) c.fill={type:'pattern',pattern:'solid',fgColor:{argb:brandLt}};
+      });
+    }
+
+    // Summary section
+    sectionTitle('Summary');
+    header(['Field','Value','']);
+    rows().forEach((item,idx)=>{
+      const r=ws.addRow([item.Field,item.Value,'']);
+      styleBodyRow(r, idx%2===0);
+    });
+    ws.addRow([]);
+
+    // Kits section
+    sectionTitle('Kits');
+    header(['Description','Item no.','Qty']);
+    EXP.kits.forEach((item,idx)=>{
+      const r=ws.addRow([item.desc,item.part||'',item.qty||1]);
+      styleBodyRow(r, idx%2===0);
+      r.getCell(3).alignment={horizontal:'center',vertical:'top'};
+    });
+    ws.addRow([]);
+
+    // Other items section
+    sectionTitle('Other items');
+    header(['Description','Item no.','Qty']);
+    const otherItems = EXP.other.length ? EXP.other : [{desc:'None',part:'',qty:''}];
+    otherItems.forEach((item,idx)=>{
+      const r=ws.addRow([item.desc,item.part||'',item.qty||'']);
+      styleBodyRow(r, idx%2===0);
+      r.getCell(3).alignment={horizontal:'center',vertical:'top'};
+    });
+
+    ws.views=[{state:'frozen',ySplit:1}];
+    ws.pageSetup={orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0};
+    wb.xlsx.writeBuffer().then(buf=>{
+      const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      const ts=new Date(), pad=n=>String(n).padStart(2,'0');
+      const customer=($('#by').value||'Customer').trim().replace(/[\\/:*?"<>|]/g,'-');
+      a.download=`PROTECT 360 AI Items_${customer}_${ts.getFullYear()}-${pad(ts.getMonth()+1)}-${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
   }
 
   // Dynamically load ExcelJS
