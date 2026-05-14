@@ -139,10 +139,12 @@
       <!-- Vision 360 monitor (only when Vision 360 = Yes) -->
       <div id="v360ScreenQ" class="qbox hidden" style="margin-top:10px">
         <h3>Which Vision 360 monitor would you like to include?</h3>
-        <label class="inline"><input type="radio" name="v360Screen" value="ST-HD700269R" disabled> ST-HD700269R — SKM - 7" HD touch control monitor with 360° operation built‑in + recording</label>
-        <label class="inline"><input type="radio" name="v360Screen" value="ST-HD263D" disabled> ST-HD263D — SKM - 7" HD touch control monitor for 360° operation</label>
-        <label class="inline"><input type="radio" name="v360Screen" value="ST-HD100299DC" disabled> ST-HD100299DC — SKM - 10.1" HD touch control monitor with 360° operation built‑in + recording</label>
-        <label class="inline"><input type="radio" name="v360Screen" value="ST-HD293DC" disabled> ST-HD293DC — SKM - 10.1" HD touch control monitor for 360° operation <strong>(Most popular)</strong></label>
+        <div class="muted-small" style="width:100%;margin:4px 0 2px"><strong>Inbuilt recording</strong></div>
+        <label class="inline"><input type="radio" name="v360Screen" value="ST-HD700269R" disabled> ST-HD700269R — 7" HD touch control monitor with 360° operation built‑in + recording</label>
+        <label class="inline"><input type="radio" name="v360Screen" value="ST-HD100299DC" disabled> ST-HD100299DC — 10.1" HD touch control monitor with 360° operation built‑in + recording</label>
+        <div class="muted-small" style="width:100%;margin:8px 0 2px"><strong>External DVR</strong></div>
+        <label class="inline"><input type="radio" name="v360Screen" value="ST-HD263D" disabled> ST-HD263D — 7" HD touch control monitor for 360° operation</label>
+        <label class="inline"><input type="radio" name="v360Screen" value="ST-HD293DC" disabled> ST-HD293DC — 10.1" HD touch control monitor for 360° operation <strong>(Most popular)</strong></label>
         <div id="vV360Screen" class="note warn hidden">Please select a monitor option.</div>
       </div>
 
@@ -162,7 +164,7 @@
     <div class="card hidden" data-s="2">
       <h2>Review</h2>
       <div id="out" class="out hidden"></div>
-      <div id="updNote" class="note hidden" style="margin-top:6px">Inputs changed — click <strong>update</strong> to refresh results.</div>
+      <div id="updNote" class="note warn hidden" style="margin-top:6px"><strong>Parameters changed.</strong> Click <strong>Update</strong> to refresh the review output and Excel export.</div>
       <div class="inline" style="justify-content:space-between;margin-top:8px">
         <span id="custWrap" class="hidden">Enter the customer name: <input id="by" style="padding:6px;border:1px solid var(--b);border-radius:8px"></span>
         <span class="inline">
@@ -319,16 +321,19 @@
 
   // ===== Kits & Items =====
   function kit(k){ switch(k){ case 'Front': return 'PROTECT360AIFRONTVK'; case 'Rear': return 'PROTECT360AIREARVK'; case 'Side Left': case 'Side Right': return 'PROTECT360AISIDEVK'; case 'Corner Left': case 'Corner Right': return 'PROTECT360AICORNERVK'; default: return ''; } }
-  const OI={ spk:{desc:'Internal speaker',part:'11IA-01'}, sns:{desc:'Steering angle sensor',part:'30IFM204'}, cab:{desc:'Steering angle cable',part:'30EVC005'}, brk:{desc:'Steering angle bracket',part:'PROTECT360AISTEERBKT'}, strobe:{desc:'Strobe light bar',part:'101LEDBAR-780MM'}, xspk:{desc:'External speaker',part:'101EA-02'}, mux:{desc:'Multiplexer',part:'PROTECT360AIMULTI'}, spl2:{desc:'Splitter – 2 way',part:'12AIOLAY2LADTHAR'}, spl3:{desc:'Splitter – 3 way',part:'12AIOLAY3LADTHAR'}, rwext:{desc:'RW2.0 extension harness',part:'81RW2EXHARNESS13M'} };
+  const OI={ spk:{desc:'Internal speaker',part:'11IA-01'}, sns:{desc:'Steering angle sensor',part:'30IFM204'}, cab:{desc:'Steering angle cable',part:'30EVC005'}, brk:{desc:'Steering angle bracket',part:'07SASB300X25X3'}, strobe:{desc:'Strobe light bar',part:'101LEDBAR-780MM'}, xspk:{desc:'External speaker',part:'101EA-02'}, mux:{desc:'Multiplexer',part:'11PROTECT360SIM'}, spl2:{desc:'Splitter – 2 way',part:'12AIOLAY2LADTHAR'}, spl3:{desc:'Splitter – 3 way',part:'12AIOLAY3LADTHAR'}, rwext:{desc:'RW2.0 extension harness',part:'81RW2EXHARNESS13M'}, rwcan:{desc:'P360 RW2.0 CAN Adaptor Harness',part:'PROTECT360AIRWCANWH'}, v360Cable:{desc:'4 PIN Extension Cable 20M',part:'ST-4 PIN-20m'}, v360Cam:{desc:'Vision 360 Camera 200°',part:'ST-BVA17-CAMERA-200'} };
   const MONITORS={
-    'ST-HD700269R':{full:'SKM - 7" HD touch control monitor with 360° operation built‑in + recording', short:'7" Vision monitor with recording'},
-    'ST-HD263D':{full:'SKM - 7" HD touch control monitor for 360° operation', short:'7" Vision monitor'},
-    'ST-HD100299DC':{full:'SKM - 10.1" HD touch control monitor with 360° operation built‑in + recording', short:'10.1" Vision monitor with recording'},
-    'ST-HD293DC':{full:'SKM - 10.1" HD touch control monitor for 360° operation', short:'10.1" Vision monitor (Most popular)'}
+    'ST-HD700269R':{full:'7" HD touch control monitor with 360° operation built‑in + recording', short:'7" Vision monitor with recording'},
+    'ST-HD263D':{full:'7" HD touch control monitor for 360° operation', short:'7" Vision monitor'},
+    'ST-HD100299DC':{full:'10.1" HD touch control monitor with 360° operation built‑in + recording', short:'10.1" Vision monitor with recording'},
+    'ST-HD293DC':{full:'10.1" HD touch control monitor for 360° operation', short:'10.1" Vision monitor (Most popular)'}
   };
   function combine(items){ const m=new Map(); items.forEach(it=>{ const k=`${it.part}|${it.desc}`; if(!m.has(k)) m.set(k,{desc:it.desc,part:it.part||'',qty:0}); m.get(k).qty += (it.qty||1); }); return [...m.values()]; }
   function table(title,items){ if(!items.length) return ''; const rows = items.map(i => { return `<tr><td>${i.desc}</td><td>${i.part||''}</td><td>${i.qty||1}</td></tr>`; }).join(''); return `<div class="table-wrap"><table class="tbl"><thead><tr><th>Description</th><th>Item no.</th><th>Qty</th></tr></thead><tbody>${rows}</tbody></table></div>`; }
   function needsSpeakerSingle(sels){ const cornerLeft = sels.includes('Corner Left'); const leftSide = sels.includes('Side Left'); return cornerLeft || (leftSide && sels.length>1); }
+  function sideHardwareQty(){ const left = has('Side Left') || has('Corner Left'); const right = has('Side Right') || has('Corner Right'); return (left?1:0) + (right?1:0); }
+  function isInbuiltRecordingMonitor(code){ return code==='ST-HD700269R' || code==='ST-HD100299DC'; }
+  function vision360CameraQty(){ const front = has('Front'), rear = has('Rear'); if(front && rear) return 2; if(front || rear) return 3; return 4; }
 
   let EXP={};
   let HAS_OUTPUT=false; let LAST_SIG="";
@@ -367,7 +372,7 @@
       $('#custWrap').classList.add('hidden');
     }
   }
-  function markDirty(){ if(HAS_OUTPUT){ const dirty = (collectSig()!==LAST_SIG); $('#gen').textContent='Update'; $('#gen').disabled = !dirty; $('#updNote').classList.toggle('hidden', !dirty); } }
+  function markDirty(){ if(HAS_OUTPUT){ const dirty = (collectSig()!==LAST_SIG); $('#gen').textContent='Update'; $('#gen').disabled = !dirty; $('#updNote').classList.toggle('hidden', !dirty); if(dirty){ $('#xls').disabled=true; $('#out').classList.add('warn'); } else { $('#out').classList.remove('warn'); refreshButtons(); } } }
   // Self-tests
   (function selfTests(){ try{ const html = table('Test', [{desc:'A',part:'P1',qty:2},{desc:'B',part:'',qty:1}]); if(!html.includes('<table')||!html.includes('P1')) console.warn('table() test failed'); const merged = combine([{desc:'S',part:'X',qty:1},{desc:'S',part:'X',qty:3}]); if(!(merged[0] && merged[0].qty===4)) console.warn('combine() sum failed'); }catch(e){ console.warn('Self-test error:', e); }})();
 
@@ -375,18 +380,20 @@
     $('#updNote').classList.add('hidden');
     const sels=selS(), ctlVisible=!$('#ctlQ').classList.contains('hidden'), ctl=ctlVisible?(selR('ctl')||'Single'):'', canData=selR('canData')||'', rw=selR('rw')||'', v360=selR('v360')||'';
     const vision360Selected = v360==='Yes';
+    const scrCode = vision360Selected ? (selR('v360Screen')||'') : '';
+    const inbuiltRecording = isInbuiltRecordingMonitor(scrCode);
     const fShown=has('Front'), rShown=has('Rear') && !has('Front');
 
     const fSt=$('#fStCb')?.checked||false, fSp=$('#fSpCb')?.checked||false, rSt=$('#rStCb')?.checked||false, rSp=$('#rSpCb')?.checked||false;
     const lSt=$('#lStCb')?.checked||false, rStSide=$('#rSideStCb')?.checked||false;
 
     // Kits
-    const kits=[{desc:'Base',part:'PROTECT360AIBASE',qty:1}];
+    const kits=[{desc:'Base',part:'PROTECT360AIBASEK',qty:1}];
     if(has('Front')) kits.push({desc: vision360Selected? 'Front (190)':'Front', part: vision360Selected? 'PROTECT360AIFRTVK-V':'PROTECT360AIFRONTVK', qty:1});
     if(has('Rear'))  kits.push({desc: vision360Selected? 'Rear (190)':'Rear',  part: vision360Selected? 'PROTECT360AIREARVK-V':'PROTECT360AIREARVK', qty:1});
     const sc=(has('Side Left')?1:0)+(has('Side Right')?1:0); if(sc) kits.push({desc: sc===2?'Side (both)':(has('Side Left')?'Side (left)':'Side (right)'), part:'PROTECT360AISIDEVK', qty:sc});
     const cc=(has('Corner Left')?1:0)+(has('Corner Right')?1:0);
-    if(vision360Selected) kits.push({desc:'Vision 360', part:'ST-BVA17', qty:1});
+    if(vision360Selected && !inbuiltRecording) kits.push({desc:'Vision 360', part:'ST-BVA17', qty:1});
     if(cc) kits.push({desc: cc===2?'Corner (both)':(has('Corner Left')?'Corner (left)':'Corner (right)'), part:'PROTECT360AICORNERVK', qty:cc});
 
     // Other items
@@ -399,13 +406,14 @@
     // CAN hardware
     if(needsCAN()){
       if(canData==='None' || canData==='Indicators only'){
-        other.push({desc:OI.sns.desc,part:OI.sns.part,qty:1},{desc:OI.cab.desc,part:OI.cab.part,qty:1},{desc:OI.brk.desc,part:OI.brk.part,qty:1});
+        const qty = sideHardwareQty();
+        other.push({desc:OI.sns.desc,part:OI.sns.part,qty},{desc:OI.cab.desc,part:OI.cab.part,qty},{desc:OI.brk.desc,part:OI.brk.part,qty});
       }
     }
 
     // Rear extras
     if(has('Rear')){
-      if(rw==='Yes') other.push({desc:OI.spl2.desc,part:OI.spl2.part,qty:2});
+      if(rw==='Yes') other.push({desc:OI.spl2.desc,part:OI.spl2.part,qty:2},{desc:OI.rwcan.desc,part:OI.rwcan.part,qty:1});
       else if(rw==='No') other.push({desc:OI.rwext.desc,part:OI.rwext.part,qty:1});
     }
 
@@ -428,12 +436,16 @@
     // Multiplexer (for any Side/Corner) unless CAN provides both
     if((anySide()||anyCorner()) && selR('canData')!=='Both') other.push({desc:OI.mux.desc,part:OI.mux.part,qty:1});
 
+    // Vision 360 inbuilt recording monitors replace ST-BVA17 with cables and cameras
+    if(vision360Selected && inbuiltRecording){
+      other.push({desc:OI.v360Cable.desc,part:OI.v360Cable.part,qty:4},{desc:OI.v360Cam.desc,part:OI.v360Cam.part,qty:vision360CameraQty()});
+    }
+
     // Vision 360 monitor as Other item only
-    if(vision360Selected){ const code=selR('v360Screen'); if(code){ const short=MONITORS[code]?.short||'Vision monitor'; other.push({desc:short,part:code,qty:1}); } }
+    if(vision360Selected){ const code=scrCode; if(code){ const short=MONITORS[code]?.short||'Vision monitor'; other.push({desc:short,part:code,qty:1}); } }
 
     other=combine(other);
 
-    const scrCode = vision360Selected ? (selR('v360Screen')||'') : '';
     const scrShort = scrCode && MONITORS[scrCode] ? MONITORS[scrCode].short : '';
 
     const parts=[]; if(has('Front')) parts.push('Front'); if(has('Rear')) parts.push('Rear'); if(sc){ parts.push(sc===2?'Side (both)':(has('Side Left')?'Side (left)':'Side (right)')); } if(cc){ parts.push(cc===2?'Corner (both)':(has('Corner Left')?'Corner (left)':'Corner (right)')); } if(vision360Selected) parts.push('Vision 360');
@@ -446,7 +458,7 @@
     if(vision360Selected) html += `<strong>Vision 360:</strong> ${v360}<br>`;
     if(vision360Selected && scrCode) html += `<strong>Vision 360 monitor:</strong> ${scrShort} (${scrCode})<br>`;
     html += table('Kits',kits) + (other.length? table('Other items',other) : '<div class="note">No other items.</div>');
-    const out=$('#out'); out.innerHTML=html; out.classList.remove('hidden');
+    const out=$('#out'); out.innerHTML=html; out.classList.remove('hidden'); out.classList.remove('warn');
 
     EXP={ kits, other, ctl, ctlVisible, prettySolutions, canData, rw, v360, v360MonitorCode:scrCode, v360MonitorShort:scrShort, by:($('#by').value||''), at:new Date().toISOString() };
     HAS_OUTPUT=true; LAST_SIG=collectSig(); refreshButtons();
