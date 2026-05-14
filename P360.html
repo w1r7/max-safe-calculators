@@ -321,7 +321,7 @@
 
   // ===== Kits & Items =====
   function kit(k){ switch(k){ case 'Front': return 'PROTECT360AIFRONTVK'; case 'Rear': return 'PROTECT360AIREARVK'; case 'Side Left': case 'Side Right': return 'PROTECT360AISIDEVK'; case 'Corner Left': case 'Corner Right': return 'PROTECT360AICORNERVK'; default: return ''; } }
-  const OI={ spk:{desc:'Internal speaker',part:'11IA-01'}, sns:{desc:'Steering angle sensor',part:'30IFM204'}, cab:{desc:'Steering angle cable',part:'30EVC005'}, brk:{desc:'Steering angle bracket',part:'07SASB300X25X3'}, strobe:{desc:'Strobe light bar',part:'101LEDBAR-780MM'}, xspk:{desc:'External speaker',part:'101EA-02'}, mux:{desc:'Multiplexer',part:'11PROTECT360SIM'}, spl2:{desc:'Splitter – 2 way',part:'12AIOLAY2LADTHAR'}, spl3:{desc:'Splitter – 3 way',part:'12AIOLAY3LADTHAR'}, rwext:{desc:'RW2.0 extension harness',part:'81RW2EXHARNESS13M'}, rwcan:{desc:'P360 RW2.0 CAN Adaptor Harness',part:'PROTECT360AIRWCANWH'}, v360Cable:{desc:'4 PIN Extension Cable 20M',part:'ST-4 PIN-20m'}, v360Cam:{desc:'Vision 360 Camera 200°',part:'ST-BVA17-CAMERA-200'} };
+  const OI={ spk:{desc:'Internal speaker',part:'11IA-01'}, sns:{desc:'Steering angle sensor',part:'30IFM204'}, cab:{desc:'Steering angle cable',part:'30EVC005'}, brk:{desc:'Steering angle bracket',part:'07SASB300X25X3'}, strobe:{desc:'Strobe light bar',part:'101LEDBAR-780MM'}, xspk:{desc:'External speaker',part:'101EA-02'}, mux:{desc:'Multiplexer',part:'11PROTECT360SIM'}, spl2:{desc:'Splitter – 2 way',part:'12AIOLAY2LADTHAR'}, spl3:{desc:'Splitter – 3 way',part:'12AIOLAY3LADTHAR'}, rwext:{desc:'RW2.0 extension harness',part:'81RW2EXHARNESS13M'}, extspkCable:{desc:'External Speaker Cable',part:'81EA-8MEXT'}, rwcan:{desc:'P360 RW2.0 CAN Adaptor Harness',part:'PROTECT360AIRWCANWH'}, v360Cable:{desc:'4 PIN Extension Cable 20M',part:'ST-4 PIN-20m'}, v360Cam:{desc:'Vision 360 Camera 200°',part:'ST-BVA17-CAMERA-200'} };
   const MONITORS={
     'ST-HD700269R':{full:'7" HD touch control monitor with 360° operation built‑in + recording', short:'7" Vision monitor with recording'},
     'ST-HD263D':{full:'7" HD touch control monitor for 360° operation', short:'7" Vision monitor'},
@@ -430,8 +430,8 @@
     if(rStSide) stCtx.push('Right');
     if(rShown && rSt) stCtx.push('Rear');
     if(stCtx.length) other.push({desc:`${OI.strobe.desc} (${stCtx.join(', ')})`,part:OI.strobe.part,qty:stCtx.length});
-    if(fShown && fSp) other.push({desc:`${OI.xspk.desc} (front)`,part:OI.xspk.part,qty:1});
-    if(rShown && rSp) other.push({desc:`${OI.xspk.desc} (rear)`,part:OI.xspk.part,qty:1});
+    if(fShown && fSp) other.push({desc:`${OI.xspk.desc} (front)`,part:OI.xspk.part,qty:1},{desc:OI.extspkCable.desc,part:OI.extspkCable.part,qty:1});
+    if(rShown && rSp) other.push({desc:`${OI.xspk.desc} (rear)`,part:OI.xspk.part,qty:1},{desc:OI.extspkCable.desc,part:OI.extspkCable.part,qty:1});
 
     // Multiplexer (for any Side/Corner) unless CAN provides both
     if((anySide()||anyCorner()) && selR('canData')!=='Both') other.push({desc:OI.mux.desc,part:OI.mux.part,qty:1});
