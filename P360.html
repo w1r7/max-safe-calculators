@@ -148,6 +148,13 @@
         <div id="vV360Screen" class="note warn hidden">Please select a monitor option.</div>
       </div>
 
+      <div id="extCableQ" class="qbox hidden" style="margin-top:10px;border-left:4px solid var(--r);background:#fafafa">
+        <div class="muted-small" style="margin-bottom:6px"><strong>Follow-up for External DVR monitors</strong></div>
+        <h3>Would you like to add a monitor 6 PIN Extension Cable 3M?</h3>
+        <label class="inline"><input type="radio" name="ext6pin" value="Yes" disabled> Yes</label>
+        <label class="inline"><input type="radio" name="ext6pin" value="No" disabled> No</label>
+      </div>
+
       <hr class="sep">
 
       <!-- Control type (conditional) -->
@@ -250,6 +257,7 @@
 
   // Vision 360 follow-up listener
   $$('input[name=v360]').forEach(r=> r.addEventListener('change',()=>{ updateV360Screen(); updateCtlVisibility(); markDirty(); }));
+  $$('input[name=v360Screen]').forEach(r=> r.addEventListener('change',()=>{ updateExtCableQuestion(); markDirty(); }));
 
   // ===== UI updates =====
   function updateCAN(){
@@ -290,6 +298,20 @@
     if(!(leftActive||rightActive)) ['lStCb','rSideStCb'].forEach(id=>{ const el=$('#'+id); if(el) el.checked=false; });
   }
 
+  function updateExtCableQuestion(){
+    const code = selR('v360Screen');
+    const show = code==='ST-HD263D' || code==='ST-HD293DC';
+    const box = $('#extCableQ');
+    const radios = $$("input[name=ext6pin]", box);
+
+    box.classList.toggle('hidden', !show);
+
+    radios.forEach(r=>{
+      r.disabled = !show;
+      if(!show) r.checked=false;
+    });
+  }
+
   // Vision 360 screen question visibility
   function updateV360Screen(){
     const yes = selR('v360')==='Yes';
@@ -298,6 +320,7 @@
     box.classList.toggle('hidden', !yes);
     radios.forEach(r=>{ r.disabled = !yes; if(!yes) r.checked=false; });
     if(!yes) $('#vV360Screen').classList.add('hidden');
+    updateExtCableQuestion();
     updateCtlVisibility();
   }
 
@@ -321,7 +344,7 @@
 
   // ===== Kits & Items =====
   function kit(k){ switch(k){ case 'Front': return 'PROTECT360AIFRONTVK'; case 'Rear': return 'PROTECT360AIREARVK'; case 'Side Left': case 'Side Right': return 'PROTECT360AISIDEVK'; case 'Corner Left': case 'Corner Right': return 'PROTECT360AICORNERVK'; default: return ''; } }
-  const OI={ spk:{desc:'Internal speaker',part:'11IA-01'}, sns:{desc:'Steering angle sensor',part:'30IFM204'}, cab:{desc:'Steering angle cable',part:'30EVC005'}, brk:{desc:'Steering angle bracket',part:'07SASB300X25X3'}, strobe:{desc:'Strobe light bar',part:'101LEDBAR-780MM'}, xspk:{desc:'External speaker',part:'101EA-02'}, mux:{desc:'Multiplexer',part:'11PROTECT360SIM'}, spl2:{desc:'Splitter – 2 way',part:'12AIOLAY2LADTHAR'}, spl3:{desc:'Splitter – 3 way',part:'12AIOLAY3LADTHAR'}, rwext:{desc:'RW2.0 extension harness',part:'81RW2EXHARNESS13M'}, extspkCable:{desc:'External Speaker Cable',part:'81EA-8MEXT'}, rwcan:{desc:'P360 RW2.0 CAN Adaptor Harness',part:'PROTECT360AIRWCANWH'}, v360Cable:{desc:'4 PIN Extension Cable 20M',part:'ST-4 PIN-20m'}, v360Cam:{desc:'Vision 360 Camera 200°',part:'ST-BVA17-CAMERA-200'} };
+  const OI={ spk:{desc:'Internal speaker',part:'11IA-01'}, sns:{desc:'Steering angle sensor',part:'30IFM204'}, cab:{desc:'Steering angle cable',part:'30EVC005'}, brk:{desc:'Steering angle bracket',part:'07SASB300X25X3'}, strobe:{desc:'Strobe light bar',part:'101LEDBAR-780MM'}, xspk:{desc:'External speaker',part:'101EA-02'}, mux:{desc:'Multiplexer',part:'11PROTECT360SIM'}, spl2:{desc:'Splitter – 2 way',part:'12AIOLAY2LADTHAR'}, spl3:{desc:'Splitter – 3 way',part:'12AIOLAY3LADTHAR'}, rwext:{desc:'RW2.0 extension harness',part:'81RW2EXHARNESS13M'}, extspkCable:{desc:'External Speaker Cable',part:'81EA-8MEXT'}, rwcan:{desc:'P360 RW2.0 CAN Adaptor Harness',part:'PROTECT360AIRWCANWH'}, v360Cable:{desc:'4 PIN Extension Cable 20M',part:'ST-4 PIN-20m'}, v360Cam:{desc:'Vision 360 Camera 200°',part:'ST-BVA17-CAMERA-200'}, ext6pin:{desc:'Monitor 6 PIN Extension Cable 3M',part:'ST-6PIN-3M'} };
   const MONITORS={
     'ST-HD700269R':{full:'7" HD touch control monitor with 360° operation built‑in + recording', short:'7" Vision monitor with recording'},
     'ST-HD263D':{full:'7" HD touch control monitor for 360° operation', short:'7" Vision monitor'},
@@ -344,6 +367,7 @@
       rw: selR('rw')||'',
       v360: selR('v360')||'',
       v360Screen: selR('v360Screen')||'',
+      ext6pin: selR('ext6pin')||'',
       ctl: selR('ctl')||'',
       addons:{
         fSt: $('#fStCb')?.checked||false,
@@ -441,6 +465,11 @@
       other.push({desc:OI.v360Cable.desc,part:OI.v360Cable.part,qty:4},{desc:OI.v360Cam.desc,part:OI.v360Cam.part,qty:vision360CameraQty()});
     }
 
+    // Optional 6 PIN Extension Cable
+    if(selR('ext6pin')==='Yes'){
+      other.push({desc:OI.ext6pin.desc,part:OI.ext6pin.part,qty:1});
+    }
+
     // Vision 360 monitor as Other item only
     if(vision360Selected){ const code=scrCode; if(code){ const short=MONITORS[code]?.short||'Vision monitor'; other.push({desc:short,part:code,qty:1}); } }
 
@@ -470,7 +499,7 @@
 
   // Step init
   window.addEventListener('DOMContentLoaded',()=>{
-    go(0); updateCAN(); updateRW(); updateAddons(); updateV360Screen(); updateCtlVisibility(); refreshButtons();
+    go(0); updateCAN(); updateRW(); updateAddons(); updateV360Screen(); updateExtCableQuestion(); updateCtlVisibility(); refreshButtons();
     document.addEventListener('change',markDirty,true);
     document.addEventListener('input',markDirty,true);
     $('#by').addEventListener('input',()=>refreshButtons());
