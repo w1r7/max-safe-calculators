@@ -102,7 +102,7 @@
 
       <!-- RW2.0 (conditional) -->
       <div id="rearQ" class="hidden qbox" style="margin-top:10px">
-        <h3>Is there an existing RW2.0 at the rear?</h3>
+        <h3>Does this vehicle have, or will it have, RW2.0 installed?</h3>
         <label><input type="radio" name="rw" value="Yes" disabled> Yes</label>
         <label><input type="radio" name="rw" value="No" disabled> No</label>
         <div id="vRw" class="note warn hidden">Answer yes or no.</div>
@@ -343,7 +343,7 @@
   }
 
   // ===== Kits & Items =====
-  function kit(k){ switch(k){ case 'Front': return 'PROTECT360AIFRONTVK'; case 'Rear': return 'PROTECT360AIREARVK'; case 'Side Left': case 'Side Right': return 'PROTECT360AISIDEVK'; case 'Corner Left': case 'Corner Right': return 'PROTECT360AICORNERVK'; default: return ''; } }
+  function kit(k){ switch(k){ case 'Front': return 'PROTECT360AIFRONTVK'; case 'Rear': return 'PROTECT360AIREARVK'; case 'Side Left': return 'PROTECT360AISIDEVLK'; case 'Side Right': return 'PROTECT360AISIDEVRK'; case 'Corner Left': return 'PROTECT360AICNRVLK'; case 'Corner Right': return 'PROTECT360AICNRVRK'; default: return ''; } }
   const OI={ spk:{desc:'Internal speaker',part:'11IA-01'}, sns:{desc:'Steering angle sensor',part:'30IFM204'}, cab:{desc:'Steering angle cable',part:'30EVC005'}, brk:{desc:'Steering angle bracket',part:'07SASB300X25X3'}, strobe:{desc:'Strobe light bar',part:'101LEDBAR-780MM'}, xspk:{desc:'External speaker',part:'101EA-02'}, mux:{desc:'Multiplexer',part:'11PROTECT360SIM'}, spl2:{desc:'Splitter – 2 way',part:'12AIOLAY2LADTHAR'}, spl3:{desc:'Splitter – 3 way',part:'12AIOLAY3LADTHAR'}, rwext:{desc:'RW2.0 extension harness',part:'81RW2EXHARNESS13M'}, extspkCable:{desc:'External Speaker Cable',part:'81EA-8MEXT'}, rwcan:{desc:'P360 RW2.0 CAN Adaptor Harness',part:'PROTECT360AIRWCANWH'}, v360Cable:{desc:'4 PIN Extension Cable 20M',part:'ST-4 PIN-20m'}, v360Cam:{desc:'Vision 360 Camera 200°',part:'ST-BVA17-CAMERA-200'}, ext6pin:{desc:'Monitor 6 PIN Extension Cable 3M',part:'ST-6PIN-3M'} };
   const MONITORS={
     'ST-HD700269R':{full:'7" HD touch control monitor with 360° operation built‑in + recording', short:'7" Vision monitor with recording'},
@@ -415,10 +415,13 @@
     const kits=[{desc:'Base',part:'PROTECT360AIBASEK',qty:1}];
     if(has('Front')) kits.push({desc: vision360Selected? 'Front (190)':'Front', part: vision360Selected? 'PROTECT360AIFRTVK-V':'PROTECT360AIFRONTVK', qty:1});
     if(has('Rear'))  kits.push({desc: vision360Selected? 'Rear (190)':'Rear',  part: vision360Selected? 'PROTECT360AIREARVK-V':'PROTECT360AIREARVK', qty:1});
-    const sc=(has('Side Left')?1:0)+(has('Side Right')?1:0); if(sc) kits.push({desc: sc===2?'Side (both)':(has('Side Left')?'Side (left)':'Side (right)'), part:'PROTECT360AISIDEVK', qty:sc});
+    const sc=(has('Side Left')?1:0)+(has('Side Right')?1:0);
+    if(has('Side Left')) kits.push({desc:'Side (left)', part:'PROTECT360AISIDEVLK', qty:1});
+    if(has('Side Right')) kits.push({desc:'Side (right)', part:'PROTECT360AISIDEVRK', qty:1});
     const cc=(has('Corner Left')?1:0)+(has('Corner Right')?1:0);
     if(vision360Selected && !inbuiltRecording) kits.push({desc:'Vision 360', part:'ST-BVA17', qty:1});
-    if(cc) kits.push({desc: cc===2?'Corner (both)':(has('Corner Left')?'Corner (left)':'Corner (right)'), part:'PROTECT360AICORNERVK', qty:cc});
+    if(has('Corner Left')) kits.push({desc:'Corner (left)', part:'PROTECT360AICNRVLK', qty:1});
+    if(has('Corner Right')) kits.push({desc:'Corner (right)', part:'PROTECT360AICNRVRK', qty:1});
 
     // Other items
     let other=[]; let addSp=false;
@@ -483,7 +486,7 @@
     let html = `<strong>Solutions:</strong> ${prettySolutions}<br>`;
     if(ctlVisible) html += `<strong>Control type:</strong> ${ctl}<br>`;
     if(needsCAN()) html += `<strong>CAN data:</strong> ${canData||'—'}<br>`;
-    if(has('Rear')) html += `<strong>Existing RW2.0 at rear:</strong> ${rw||'—'}<br>`;
+    if(has('Rear')) html += `<strong>RW2.0 installed on vehicle:</strong> ${rw||'—'}<br>`;
     if(vision360Selected) html += `<strong>Vision 360:</strong> ${v360}<br>`;
     if(vision360Selected && scrCode) html += `<strong>Vision 360 monitor:</strong> ${scrShort} (${scrCode})<br>`;
     html += table('Kits',kits) + (other.length? table('Other items',other) : '<div class="note">No other items.</div>');
@@ -510,7 +513,7 @@
     const s=EXP||{kits:[],other:[],prettySolutions:'',canData:'',rw:'',v360:'',ctl:''};
     const A=[]; if(s.ctlVisible && s.ctl) A.push({Field:'Control type',Value:s.ctl}); A.push({Field:'Solutions',Value:s.prettySolutions});
     if(s.canData) A.push({Field:'CAN data',Value:s.canData});
-    if(s.rw) A.push({Field:'Existing RW2.0 at rear',Value:s.rw});
+    if(s.rw) A.push({Field:'RW2.0 installed on vehicle',Value:s.rw});
     if(s.v360) A.push({Field:'Vision 360',Value:s.v360});
     A.push({Field:'Other items (count)',Value:String(s.other.length)},{Field:'Exported at',Value:new Date(s.at).toLocaleString()});
     if(s.by) A.push({Field:'Customer name',Value:s.by});
