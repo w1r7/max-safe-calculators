@@ -1,9 +1,64 @@
 <!doctype html>
+<!--
+==============================================================================
+CHATGPT MAINTENANCE INSTRUCTIONS - DO NOT REMOVE
+
+These instructions are intended for ChatGPT or another assistant whenever this
+full Protect 360 AI Selection Tool HTML source is pasted into a conversation for
+modification. They are hidden from normal users and must not be displayed in the
+application UI.
+
+WHEN THE USER PASTES THE FULL SOURCE CODE AND ASKS FOR AN UPDATE
+1. Review the complete selection tool before editing. Do not update only the
+   visible section that appears related to the request.
+2. Decide the semantic version bump automatically:
+   - PATCH: bug fix, wording correction, validation fix, part-number correction,
+     small styling cleanup, or documentation-only change. Example: 6.5.0 -> 6.5.1.
+   - MINOR: new backwards-compatible question, vehicle option, selection rule,
+     item rule, export feature, UI capability, or supported product/accessory.
+     Example: 6.5.0 -> 6.6.0.
+   - MAJOR: breaking change to the selection workflow, output structure,
+     compatibility, required inputs, or removal/redefinition of existing logic.
+     Example: 6.5.0 -> 7.0.0.
+3. If the user does not paste the full source code and only asks a question or
+   clarification, do not increment the version. Increment only when returning
+   changed source code.
+4. Update every versioned location together:
+   - RELEASE.version, RELEASE.date, RELEASE.type, RELEASE.title, RELEASE.githubTag
+   - CHANGELOG newest entry
+   - HTML title and visible About page
+   - Excel workbook metadata, Summary version field, and exported filename
+   - Any other version text added to this file in the future
+5. Check the whole tool for affected logic, including:
+   - question visibility and validation
+   - automatic answers and disabled controls
+   - kit and Other-item part numbers, descriptions, and quantities
+   - Review output and Excel output
+   - customer name, filenames, mobile layout, and stale-output behaviour
+6. Never leave the tool half updated. The UI, Review results, Excel export,
+   changelog, release metadata, and maintenance instructions must agree.
+7. Keep the visible About changelist concise and customer-friendly. Use short
+   bullet points only.
+8. After returning an updated source file, also provide:
+   - GitHub commit message
+   - GitHub release title and body
+   - Version summary showing old version, new version, release type, and reason
+
+RELEASE HISTORY INTENT
+- v1.0.0 is the first released version, released on 2026-05-14.
+- v1.1.0 is the first update to the released code. It adds vehicle-based CAN
+  presets, CAN Clip assembly logic, and the About / semantic version-management
+  feature.
+- All future version updates must continue from v1.1.0 and follow the semantic
+  version rules above.
+
+==============================================================================
+-->
 <html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Protect 360 AI Selection Tool (Multi‑tab v6.4)</title>
+  <title>Protect 360 AI Selection Tool - v1.1.0</title>
   <link href="https://fonts.googleapis.com/css2?family=KoHo:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
     :root{--r:#CA202D;--k:#000;--d:#404042;--g:#F5F6F6;--w:#fff;--b:#e5e7eb}
@@ -41,6 +96,22 @@
     .qbox{border:1px solid var(--b);border-radius:8px;padding:10px;margin:10px 0}
     .muted-small{font-size:12px;color:#6b7280}
     hr.sep{border:0;border-top:1px solid var(--b);margin:12px 0}
+    /* About / release history */
+    .about-tab{margin-left:auto;background:#F0F1F2;color:var(--d);border-color:#BFC3C7;font-family:"KoHo",Arial,sans-serif;font-weight:700}
+    .about-tab.on{background:var(--d);color:#fff;border-color:var(--d)}
+    .about-card{background:#F0F1F2;border-color:#C9CDD1;box-shadow:none;max-width:760px;margin:0 0 0 auto;width:100%}
+    .about-card h2{font-size:22px;margin-bottom:6px;color:var(--d)}
+    .about-intro{margin:0 0 8px;color:#5b5f63;font-size:13px}
+    .about-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 16px}
+    .about-pill{display:inline-block;border-radius:999px;padding:4px 10px;background:var(--d);color:#fff;font-size:12px;font-weight:700}
+    .about-pill.light{background:#fff;color:var(--d);border:1px solid var(--b)}
+    .changelog-block{border-top:1px solid #D0D3D6;padding-top:12px;margin-top:12px}
+    .changelog-release{margin:0 0 18px}
+    .changelog-release h3{font-size:16px;margin:0 0 6px;color:#000}
+    .release-date{font-size:12px;color:#6b7280;font-weight:600;margin-left:6px}
+    .release-list{margin:0;padding-left:20px}
+    .release-list li{margin:4px 0}
+    @media (max-width:600px){.about-tab{margin-left:0}.about-card{max-width:none;margin:0}.wiz{display:grid;grid-template-columns:repeat(3,1fr)}.about-tab{grid-column:1/-1}}
     @media (max-width:480px){body{padding:12px}.ct{padding:16px}.grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}label,button,input{font-size:16px}.nav{padding-bottom:calc(10px + env(safe-area-inset-bottom))}.tbl{font-size:13px}}
   </style>
 </head>
@@ -64,6 +135,7 @@
       <span class="step" data-s="0">Protected zones</span>
       <span class="step" data-s="1">Details</span>
       <span class="step" data-s="2">Review</span>
+      <button id="aboutTab" class="step about-tab" type="button">About</button>
     </div>
 
     <!-- Step 0: Protected Zones -->
@@ -90,8 +162,19 @@
     <div class="card hidden" data-s="1">
       <h2>Can you confirm a few details?</h2>
 
+      <!-- Vehicle type (conditional, same visibility as CAN question) -->
+      <div id="vehicleQ" class="hidden qbox" style="margin-top:6px">
+        <h3>What vehicle will this kit be fitted to?</h3>
+        <label><input type="radio" name="vehicle" value="ISUZU" disabled> ISUZU</label>
+        <label><input type="radio" name="vehicle" value="VOLVO FE" disabled> VOLVO FE</label>
+        <label><input type="radio" name="vehicle" value="UD Quon" disabled> UD Quon</label>
+        <label><input type="radio" name="vehicle" value="Others" disabled> Others</label>
+        <div id="vVehicle" class="note warn hidden">Please select a vehicle.</div>
+        <div id="vehicleOtherNote" class="note warn hidden">Check with R&amp;D, as this vehicle may need to be investigated first.</div>
+      </div>
+
       <!-- CAN (conditional, combined steering + indicators) -->
-      <div id="canQ" class="hidden qbox" style="margin-top:6px">
+      <div id="canQ" class="hidden qbox" style="margin-top:10px">
         <h3>Which CAN data does the vehicle provide?</h3>
         <label><input type="radio" name="canData" value="None" disabled> None</label>
         <label><input type="radio" name="canData" value="Steering only" disabled> Steering angle only</label>
@@ -183,8 +266,19 @@
       <div id="vBy" class="note warn hidden" style="margin-top:6px">Please enter the customer name before exporting.</div>
     </div>
 
+    <!-- About / release history -->
+    <div id="aboutCard" class="card about-card hidden">
+      <h2>About</h2>
+      <p class="about-intro">Protect 360 AI Selection Tool release information and concise update history.</p>
+      <div id="releaseCurrentVersion"></div>
+      <div class="changelog-block">
+        <h3>Changelist</h3>
+        <div id="releaseChangelog"></div>
+      </div>
+    </div>
+
     <!-- Sticky Nav -->
-    <div class="inline nav" style="margin-top:10px;justify-content:flex-end;gap:8px">
+    <div id="stickyNav" class="inline nav" style="margin-top:10px;justify-content:flex-end;gap:8px">
       <button id="prev" class="btn ghost" disabled>Back</button>
       <button id="next" class="btn">Next</button>
     </div>
@@ -192,6 +286,73 @@
 
   <script>
   "use strict";
+
+  // ===== Release management =====
+  const RELEASE={
+    name:'Protect 360 AI Selection Tool',
+    shortName:'Protect 360 AI',
+    version:'v1.1.0',
+    date:'2026-07-28',
+    releaseDate:'2026-07-28',
+    type:'Minor release',
+    releaseType:'Minor release',
+    title:'Vehicle CAN presets and release management',
+    githubTag:'v1.1.0',
+    status:'Released tool'
+  };
+  const APP_METADATA=RELEASE;
+  const CHANGELOG=[
+    {
+      version:'v1.1.0',
+      date:'2026-07-28',
+      changes:[
+        'Added vehicle selection and automatic CAN-data presets for ISUZU, VOLVO FE, and UD Quon',
+        'Added CAN Clip assembly 11ECAN02 for ISUZU and VOLVO FE selections',
+        'Added an R&D investigation warning for Other vehicles',
+        'Added semantic version management and an About changelist'
+      ]
+    },
+    {
+      version:'v1.0.0',
+      date:'2026-05-14',
+      changes:[
+        'Initial released version of the Protect 360 AI Selection Tool'
+      ]
+    }
+  ];
+  const APP_CHANGELOG=CHANGELOG;
+
+  function escapeHtml(value){
+    return String(value??'').replace(/[&<>"']/g,ch=>({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+    })[ch]);
+  }
+  function releaseListHtml(items){
+    return `<ul class="release-list">${items.map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+  }
+  function renderReleaseInfo(){
+    const currentBox=document.getElementById('releaseCurrentVersion');
+    if(currentBox){
+      currentBox.innerHTML=`<div class="about-meta"><span class="about-pill">${escapeHtml(RELEASE.version)}</span><span class="about-pill light">${escapeHtml(RELEASE.type)}</span><span class="about-pill light">${escapeHtml(RELEASE.date)}</span></div><strong>${escapeHtml(RELEASE.title)}</strong>`;
+    }
+    const listBox=document.getElementById('releaseChangelog');
+    if(listBox){
+      listBox.innerHTML=CHANGELOG.map(r=>`<div class="changelog-release"><h3>${escapeHtml(r.version)}${r.date?` <span class="release-date">${escapeHtml(r.date)}</span>`:''}</h3>${releaseListHtml(r.changes)}</div>`).join('');
+    }
+  }
+  function buildMaintenanceGithubCommitMessage(){
+    return `${RELEASE.version} - ${RELEASE.title}`;
+  }
+  function buildMaintenanceGithubReleaseNotes(){
+    const current=CHANGELOG[0];
+    const lines=[`# ${RELEASE.version} - ${RELEASE.title}`,'',`Release date: ${RELEASE.date}`,`Release type: ${RELEASE.type}`,'','## Changes'];
+    current.changes.forEach(item=>lines.push(`- ${item}`));
+    return lines.join('\n');
+  }
+  function buildMaintenanceVersionSummary(previousVersion,reason){
+    return `Previous version:\n${previousVersion||'Set during update'}\n\nCurrent version:\n${RELEASE.version}\n\nRelease type:\n${RELEASE.type}\n\nReason:\n${reason||RELEASE.title}`;
+  }
+
   // ===== Helpers =====
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const has=n=>!!$(`input[name=sol][value="${n}"]:checked`);
@@ -199,10 +360,13 @@
   const selR=n=>{ const e=$(`input[name=${n}]:checked`); return e?e.value:null };
 
   // ===== Stepper =====
-  let STEP=0; const cards=$$('.card[data-s]'), pills=$$('#wiz .step');
+  let STEP=0; const cards=$$('.card[data-s]'), pills=$$('#wiz .step[data-s]');
   function go(s){
     STEP=Math.max(0,Math.min(cards.length-1,s));
     cards.forEach(c=>c.classList.add('hidden'));
+    $('#aboutCard')?.classList.add('hidden');
+    $('#aboutTab')?.classList.remove('on');
+    $('#stickyNav')?.classList.remove('hidden');
     const c=cards.find(c=>+c.dataset.s===STEP); if(c) c.classList.remove('hidden');
     pills.forEach(p=>p.classList.toggle('on',+p.dataset.s===STEP));
     const pb=$('#prev'), nb=$('#next');
@@ -210,10 +374,19 @@
     const last=STEP===cards.length-1;
     if(nb){ nb.textContent='Next'; nb.disabled=last; }
   }
+  function showAbout(){
+    cards.forEach(c=>c.classList.add('hidden'));
+    pills.forEach(p=>p.classList.remove('on'));
+    $('#aboutCard')?.classList.remove('hidden');
+    $('#aboutTab')?.classList.add('on');
+    $('#stickyNav')?.classList.add('hidden');
+    renderReleaseInfo();
+  }
   const doPrev=()=>go(STEP-1);
   const doNext=()=>{ if(!validate(STEP)) return; go(STEP+1); const last=STEP===cards.length-1; const nb=$('#next'); if(nb){ nb.textContent='Next'; nb.disabled=last; } };
   $('#prev').onclick=doPrev; $('#next').onclick=doNext;
   pills.forEach(p=>p.addEventListener('click',()=>{ const tgt=+p.dataset.s; if(tgt<=STEP){ go(tgt); } else { let ok=true; for(let i=STEP;i<tgt;i++){ if(!validate(i)){ ok=false; break; } } if(ok) go(tgt); } }));
+  $('#aboutTab').onclick=showAbout;
 
   // ===== Rules =====
   function speakerDependsOnCtl(sels, v360){
@@ -255,16 +428,69 @@
     updateCtlVisibility(); markDirty();
   }));
 
+  // Vehicle selection listener
+  $$('input[name=vehicle]').forEach(r=>r.addEventListener('change',()=>{
+    if(selR('vehicle')==='Others'){
+      $$('input[name=canData]').forEach(can=>can.checked=false);
+    }
+    $('#vVehicle').classList.add('hidden');
+    updateCAN();
+    markDirty();
+  }));
+  $$('input[name=canData]').forEach(r=>r.addEventListener('change',()=>{
+    $('#vCan').classList.add('hidden');
+  }));
+
   // Vision 360 follow-up listener
   $$('input[name=v360]').forEach(r=> r.addEventListener('change',()=>{ updateV360Screen(); updateCtlVisibility(); markDirty(); }));
   $$('input[name=v360Screen]').forEach(r=> r.addEventListener('change',()=>{ updateExtCableQuestion(); markDirty(); }));
 
   // ===== UI updates =====
   function updateCAN(){
-    const card=$('#canQ'), radios=$$('input[name=canData]',card), show=needsCAN();
-    card.classList.toggle('hidden',!show);
-    radios.forEach(r=>{ r.disabled=!show; if(!show) r.checked=false; });
-    if(!show) $('#vCan').classList.add('hidden');
+    const show=needsCAN();
+    const vehicleCard=$('#vehicleQ');
+    const vehicleRadios=$$('input[name=vehicle]',vehicleCard);
+    const canCard=$('#canQ');
+    const canRadios=$$('input[name=canData]',canCard);
+    const vehicle=selR('vehicle');
+
+    vehicleCard.classList.toggle('hidden',!show);
+    canCard.classList.toggle('hidden',!show);
+
+    vehicleRadios.forEach(r=>{
+      r.disabled=!show;
+      if(!show) r.checked=false;
+    });
+
+    if(!show){
+      canRadios.forEach(r=>{ r.checked=false; r.disabled=true; });
+      $('#vVehicle').classList.add('hidden');
+      $('#vCan').classList.add('hidden');
+      $('#vehicleOtherNote').classList.add('hidden');
+      return;
+    }
+
+    $('#vehicleOtherNote').classList.toggle('hidden', vehicle!=='Others');
+
+    let fixedCan='';
+    if(vehicle==='ISUZU' || vehicle==='VOLVO FE') fixedCan='Both';
+    else if(vehicle==='UD Quon') fixedCan='Steering only';
+
+    if(fixedCan){
+      canRadios.forEach(r=>{
+        r.checked=r.value===fixedCan;
+        r.disabled=true;
+      });
+      $('#vCan').classList.add('hidden');
+    } else if(vehicle==='Others'){
+      canRadios.forEach(r=>r.disabled=false);
+    } else {
+      canRadios.forEach(r=>{
+        r.checked=false;
+        r.disabled=true;
+      });
+      $('#vCan').classList.add('hidden');
+    }
   }
   function updateRW(){
     const card=$('#rearQ'), radios=$$('input[name=rw]',card), show=needsRW();
@@ -331,7 +557,8 @@
       $('#vZones').classList.add('hidden'); updateCAN(); updateRW(); updateAddons();
     }
     if(s===1){
-      if(needsCAN() && !selR('canData')){ $('#vCan').classList.remove('hidden'); return false; } else { $('#vCan').classList.add('hidden'); }
+      if(needsCAN() && !selR('vehicle')){ $('#vVehicle').classList.remove('hidden'); return false; } else { $('#vVehicle').classList.add('hidden'); }
+      if(needsCAN() && selR('vehicle')==='Others' && !selR('canData')){ $('#vCan').classList.remove('hidden'); return false; } else { $('#vCan').classList.add('hidden'); }
       if(needsRW() && !selR('rw')){ $('#vRw').classList.remove('hidden'); return false; } else { $('#vRw').classList.add('hidden'); }
       const vAns = selR('v360');
       if(!vAns){ $('#vV360').classList.remove('hidden'); return false; } else { $('#vV360').classList.add('hidden'); }
@@ -344,7 +571,7 @@
 
   // ===== Kits & Items =====
   function kit(k){ switch(k){ case 'Front': return 'PROTECT360AIFRONTVK'; case 'Rear': return 'PROTECT360AIREARVK'; case 'Side Left': return 'PROTECT360AISIDEVLK'; case 'Side Right': return 'PROTECT360AISIDEVRK'; case 'Corner Left': return 'PROTECT360AICNRVLK'; case 'Corner Right': return 'PROTECT360AICNRVRK'; default: return ''; } }
-  const OI={ spk:{desc:'Internal speaker',part:'11IA-01'}, sns:{desc:'Steering angle sensor',part:'30IFM204'}, cab:{desc:'Steering angle cable',part:'30EVC005'}, brk:{desc:'Steering angle bracket',part:'07SASB300X25X3'}, strobe:{desc:'Strobe light bar',part:'101LEDBAR-780MM'}, xspk:{desc:'External speaker',part:'101EA-02'}, mux:{desc:'Multiplexer',part:'11PROTECT360SIM'}, spl2:{desc:'Splitter – 2 way',part:'12AIOLAY2LADTHAR'}, spl3:{desc:'Splitter – 3 way',part:'12AIOLAY3LADTHAR'}, rwext:{desc:'RW2.0 extension harness',part:'81RW2EXHARNESS13M'}, extspkCable:{desc:'External Speaker Cable',part:'81EA-8MEXT'}, rwcan:{desc:'P360 RW2.0 CAN Adaptor Harness',part:'PROTECT360AIRWCANWH'}, v360Cable:{desc:'4 PIN Extension Cable 20M',part:'ST-4 PIN-20m'}, v360Cam:{desc:'Vision 360 Camera 200°',part:'ST-BVA17-CAMERA-200'}, ext6pin:{desc:'Monitor 6 PIN Extension Cable 3M',part:'ST-6PIN-3M'} };
+  const OI={ spk:{desc:'Internal speaker',part:'11IA-01'}, canClip:{desc:'CAN Clip assembly',part:'11ECAN02'}, sns:{desc:'Steering angle sensor',part:'30IFM204'}, cab:{desc:'Steering angle cable',part:'30EVC005'}, brk:{desc:'Steering angle bracket',part:'07SASB300X25X3'}, strobe:{desc:'Strobe light bar',part:'101LEDBAR-780MM'}, xspk:{desc:'External speaker',part:'101EA-02'}, mux:{desc:'Multiplexer',part:'11PROTECT360SIM'}, spl2:{desc:'Splitter – 2 way',part:'12AIOLAY2LADTHAR'}, spl3:{desc:'Splitter – 3 way',part:'12AIOLAY3LADTHAR'}, rwext:{desc:'RW2.0 extension harness',part:'81RW2EXHARNESS13M'}, extspkCable:{desc:'External Speaker Cable',part:'81EA-8MEXT'}, rwcan:{desc:'P360 RW2.0 CAN Adaptor Harness',part:'PROTECT360AIRWCANWH'}, v360Cable:{desc:'4 PIN Extension Cable 20M',part:'ST-4 PIN-20m'}, v360Cam:{desc:'Vision 360 Camera 200°',part:'ST-BVA17-CAMERA-200'}, ext6pin:{desc:'Monitor 6 PIN Extension Cable 3M',part:'ST-6PIN-3M'} };
   const MONITORS={
     'ST-HD700269R':{full:'7" HD touch control monitor with 360° operation built‑in + recording', short:'7" Vision monitor with recording'},
     'ST-HD263D':{full:'7" HD touch control monitor for 360° operation', short:'7" Vision monitor'},
@@ -363,6 +590,7 @@
   function collectSig(){
     const obj={
       zones: selS(),
+      vehicle: selR('vehicle')||'',
       can: selR('canData')||'',
       rw: selR('rw')||'',
       v360: selR('v360')||'',
@@ -402,7 +630,7 @@
 
   function generate(){
     $('#updNote').classList.add('hidden');
-    const sels=selS(), ctlVisible=!$('#ctlQ').classList.contains('hidden'), ctl=ctlVisible?(selR('ctl')||'Single'):'', canData=selR('canData')||'', rw=selR('rw')||'', v360=selR('v360')||'';
+    const sels=selS(), ctlVisible=!$('#ctlQ').classList.contains('hidden'), ctl=ctlVisible?(selR('ctl')||'Single'):'', vehicle=selR('vehicle')||'', canData=selR('canData')||'', rw=selR('rw')||'', v360=selR('v360')||'';
     const vision360Selected = v360==='Yes';
     const scrCode = vision360Selected ? (selR('v360Screen')||'') : '';
     const inbuiltRecording = isInbuiltRecordingMonitor(scrCode);
@@ -432,6 +660,9 @@
 
     // CAN hardware
     if(needsCAN()){
+      if(vehicle==='ISUZU' || vehicle==='VOLVO FE'){
+        other.push({desc:OI.canClip.desc,part:OI.canClip.part,qty:1});
+      }
       if(canData==='None' || canData==='Indicators only'){
         const qty = sideHardwareQty();
         other.push({desc:OI.sns.desc,part:OI.sns.part,qty},{desc:OI.cab.desc,part:OI.cab.part,qty},{desc:OI.brk.desc,part:OI.brk.part,qty});
@@ -485,6 +716,7 @@
 
     let html = `<strong>Solutions:</strong> ${prettySolutions}<br>`;
     if(ctlVisible) html += `<strong>Control type:</strong> ${ctl}<br>`;
+    if(needsCAN()) html += `<strong>Vehicle:</strong> ${vehicle||'—'}<br>`;
     if(needsCAN()) html += `<strong>CAN data:</strong> ${canData||'—'}<br>`;
     if(has('Rear')) html += `<strong>RW2.0 installed on vehicle:</strong> ${rw||'—'}<br>`;
     if(vision360Selected) html += `<strong>Vision 360:</strong> ${v360}<br>`;
@@ -492,7 +724,7 @@
     html += table('Kits',kits) + (other.length? table('Other items',other) : '<div class="note">No other items.</div>');
     const out=$('#out'); out.innerHTML=html; out.classList.remove('hidden'); out.classList.remove('warn');
 
-    EXP={ kits, other, ctl, ctlVisible, prettySolutions, canData, rw, v360, v360MonitorCode:scrCode, v360MonitorShort:scrShort, by:($('#by').value||''), at:new Date().toISOString() };
+    EXP={ kits, other, ctl, ctlVisible, prettySolutions, vehicle, canData, rw, v360, v360MonitorCode:scrCode, v360MonitorShort:scrShort, by:($('#by').value||''), at:new Date().toISOString() };
     HAS_OUTPUT=true; LAST_SIG=collectSig(); refreshButtons();
   }
 
@@ -502,7 +734,7 @@
 
   // Step init
   window.addEventListener('DOMContentLoaded',()=>{
-    go(0); updateCAN(); updateRW(); updateAddons(); updateV360Screen(); updateExtCableQuestion(); updateCtlVisibility(); refreshButtons();
+    go(0); updateCAN(); updateRW(); updateAddons(); updateV360Screen(); updateExtCableQuestion(); updateCtlVisibility(); refreshButtons(); renderReleaseInfo();
     document.addEventListener('change',markDirty,true);
     document.addEventListener('input',markDirty,true);
     $('#by').addEventListener('input',()=>refreshButtons());
@@ -510,8 +742,9 @@
 
   // ===== Excel export (single sheet with Summary, Kits, and Other items) =====
   function rows(){
-    const s=EXP||{kits:[],other:[],prettySolutions:'',canData:'',rw:'',v360:'',ctl:''};
-    const A=[]; if(s.ctlVisible && s.ctl) A.push({Field:'Control type',Value:s.ctl}); A.push({Field:'Solutions',Value:s.prettySolutions});
+    const s=EXP||{kits:[],other:[],prettySolutions:'',vehicle:'',canData:'',rw:'',v360:'',ctl:''};
+    const A=[{Field:'Tool version',Value:RELEASE.version}]; if(s.ctlVisible && s.ctl) A.push({Field:'Control type',Value:s.ctl}); A.push({Field:'Solutions',Value:s.prettySolutions});
+    if(s.vehicle) A.push({Field:'Vehicle',Value:s.vehicle});
     if(s.canData) A.push({Field:'CAN data',Value:s.canData});
     if(s.rw) A.push({Field:'RW2.0 installed on vehicle',Value:s.rw});
     if(s.v360) A.push({Field:'Vision 360',Value:s.v360});
@@ -525,6 +758,11 @@
     generate();
 
     const wb=new ExcelJS.Workbook();
+    wb.creator=RELEASE.name;
+    wb.company='SGESCO-MAX';
+    wb.title=`${RELEASE.name} ${RELEASE.version}`;
+    wb.subject='Protect 360 AI selected kits and additional items';
+    wb.description=`Generated by ${RELEASE.name} ${RELEASE.version}`;
     const brandRed='CA202D', brandDark='404042', brandLt='F5F6F6', white='FFFFFF', border='E5E7EB';
     const ws=wb.addWorksheet('Protect 360 AI Items');
 
@@ -606,7 +844,8 @@
       a.href=URL.createObjectURL(blob);
       const ts=new Date(), pad=n=>String(n).padStart(2,'0');
       const customer=($('#by').value||'Customer').trim().replace(/[\\/:*?"<>|]/g,'-');
-      a.download=`PROTECT 360 AI Items_${customer}_${ts.getFullYear()}-${pad(ts.getMonth()+1)}-${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}.xlsx`;
+      const versionTag=RELEASE.version.replace(/^v/,'');
+      a.download=`PROTECT 360 AI Items_v${versionTag}_${customer}_${ts.getFullYear()}-${pad(ts.getMonth()+1)}-${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}.xlsx`;
       a.click();
       URL.revokeObjectURL(a.href);
     });
